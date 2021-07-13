@@ -107,7 +107,19 @@ const getUserByUserNameQueryWithoutAuth = async (req, res, next) => {
     : res.send({ data: 'data without required Auth' });
 };
 
+const homePage = async (req, res) => {
+  if (req.oidc.isAuthenticated()) {
+    res.send('Welcome to Khazar auth api');
+  } else {
+    response.writeHead(302, {
+      Location: '/login',
+    });
+    response.end();
+  }
+};
+
 export default {
+  homePage,
   createUser,
   getAllUSers,
   getUserById,
