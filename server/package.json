@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha 'test/**'",
+    "test": "mocha 'tests/**'",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "serve": "nodemon server.js"
@@ -23,6 +23,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^8.6.0",
     "express": "^4.17.1",
+    "express-openid-connect": "^2.4.0",
     "gridfs-stream": "^1.1.1",
     "helmet": "^4.6.0",
     "method-override": "^3.0.0",

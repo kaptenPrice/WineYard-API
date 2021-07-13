@@ -7,6 +7,8 @@ const notFound = (req, res, next) => {
   res.status(404);
   next(error);
 };
+
+
 const errorHandler = (error, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode);
@@ -24,5 +26,6 @@ const errorHandler = (error, req, res, next) => {
 //   next();
 // }
 // MIDDLEWARE FUNCTION: if requested endpoint dosnt exist
+
 
 export default { notFound, errorHandler };
