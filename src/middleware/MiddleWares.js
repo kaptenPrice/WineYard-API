@@ -8,24 +8,33 @@ const notFound = (req, res, next) => {
   next(error);
 };
 
-
 const errorHandler = (error, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode);
   res.json({
     statusCode: statusCode,
     message: error.message,
-    stacktrace: process.env.ENVIROMENT === 'PRODUCTION' ? 'lol' : error.stack,
+    stacktrace:
+      process.env.ENVIROMENT === 'PRODUCTION'
+        ? 'READ API ROUTS...'
+        : error.stack,
   });
 };
 
-// function isAuth(req, res, next) {
-//   req.query.admin === 'true'
-//     ? res.send('You are ADMIN')
-//     : res.send(`YOU CAN GO TO HELL ${req.query.admin}`);
-//   next();
-// }
-// MIDDLEWARE FUNCTION: if requested endpoint dosnt exist
 
+
+export const objectFilter = (obj, preventedValue) => {
+  return Object.fromEntries(
+    Object.entries(obj)
+      .filter(([key, value]) => !preventedValue.includes(value))
+      .map(([key, value]) => {
+        try {
+          return [key, value.trim()];
+        } catch (error) {
+          return [key, value];
+        }
+      })
+  );
+};
 
 export default { notFound, errorHandler };

@@ -1,18 +1,24 @@
 import Chai from 'chai';
 import ChaiHTTP from 'chai-http';
 import { describe, it as test } from 'mocha';
-import app from '../Server.js';
+import app from '../server.js';
 import StatusCode from '../config/StatusCode.js';
 
 Chai.should();
 Chai.use(ChaiHTTP);
 
 const randomString = Math.random().toString(36).substring(7);
+
 const userMock = {
   username: randomString,
   password: randomString,
 };
 const userId = '60ec993f8cdd8b2ddc0b6ac7';
+
+const wineMock = {
+  wineName: randomString,
+  country: randomString,
+};
 
 const testingMonExistingRoute = () => {
   describe('Testing a non existing route', () => {
@@ -89,13 +95,31 @@ const testDeleteUserById = () => {
     });
   });
 };
+const testAddWine = () => {
+  describe('TESTING TO CREATE(POST) A USER ENTITY\n', () => {
+    test('SHOULD CREATE A wine\n', (done) => {
+      Chai.request(app)
+        .post('/wine') //wineName, country
+        .send(wineMock)
+        .end((error, response) => {
+          response.should.have.status(StatusCode.CREATED);
+          response.body.should.be.a('object');
+          response.body.should.have.property('wineName').eq(wineMock.wineName);
+          response.body.should.have.property('country').eq(wineMock.country);
+          done();
+        });
+    });
+  });
+};
 
 describe('TESTING THE USER API_ROUTE', () => {
-  testingMonExistingRoute();
+ /* testingMonExistingRoute();
   testCreateUser();
   testgetAllUSers();
   testUpdateUser();
-  testDeleteUserById();
+  testDeleteUserById();*/
+ 
+  testAddWine()
 });
 
 // const testGetUserByUserNameQuery = () => {

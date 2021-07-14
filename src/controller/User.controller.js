@@ -1,20 +1,38 @@
 import UserModel from '../model/User.model.js';
+import AUTH0 from 'express-openid-connect';
 import StatusCode from '../../config/StatusCode.js';
+import WineModel from '../model/Wine.model.js';
 
 const createUser = async (req, res) => {
-  const user = new UserModel({
-    username: req.body.username,
-    password: req.body.password,
-  });
-
-  try {
-    const response = await user.save();
-    res.status(StatusCode.CREATED).send(response);
-  } catch (error) {
-    res
-      .status(StatusCode.INTERNAL_SERVER_ERROR)
-      .send({ message: error.message });
+  if (req.oidc.isAuthenticated() && !email_verified) {
+    try {
+      new UserModel({ nickname, email }).save();
+      res.status(StatusCode.CREATED).send(response);
+    } catch (error) {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .send({ message: error.message });
+    }
   }
+
+  // if (!req.body.username || !req.body.password) {
+  //   res.status(StatusCode.BAD_REQUEST);
+  //   res.send({ message: 'Cannot create a user wth empty value' });
+  //   res.end();
+  // } else {
+  //   const user = new UserModel({
+  //     username: req.body.username,
+  //     password: req.body.password,
+  //   });
+  // try {
+  //   const response = await user.save();
+  //   res.status(StatusCode.CREATED).send(response);
+  // } catch (error) {
+  //   res
+  //     .status(StatusCode.INTERNAL_SERVER_ERROR)
+  //     .send({ message: error.message });
+  // }
+  // }
 };
 
 const getAllUSers = async (req, res) => {
@@ -85,7 +103,61 @@ const updateUser = async (req, res) => {
     });
   }
 };
+/**
+ * 
+ * @param {*} req Wine ID
+ * @param {*} res Authenticated users added wines
 
+ */
+
+const addMyFavoriteWine = async (req, res) => {
+  try {
+    const { email } = req.oidc.user;
+    const favoriteWine = await WineModel.findById(req.params.wineId);
+
+    if (favoriteWine !== null || favoriteWine !== undefined) {
+      const { name, _id, country, description, grapes , year } = favoriteWine;
+
+      const authenticatedUser = await UserModel.findOneAndUpdate(
+        email,
+        {
+          $addToSet: { favoriteWines: { name, _id, country, description, grapes , year} },
+        },
+        { new: true }
+      );
+
+      res.status(StatusCode.OK).send(authenticatedUser);
+    }
+  } catch (error) {
+    if(req.params.wineId.length === 0)
+    res.status(StatusCode.NOTFOUND).send({
+      message: `Sorry from the API but you maybe took to many glas of wine.... ${req.params.wineId} is not a valid Id`,
+    });
+    res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ error: error.message });
+  }
+};
+/***
+ *
+ *
+ *
+ *
+ */
+//TODO DELETE FAVVOVIN
+
+
+
+
+
+
+
+
+/***
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 const deleteUserById = async (req, res) => {
   try {
     const response = await UserModel.findByIdAndDelete(req.params.userId);
@@ -106,20 +178,39 @@ const getUserByUserNameQueryWithoutAuth = async (req, res, next) => {
     ? next()
     : res.send({ data: 'data without required Auth' });
 };
-
-const homePage = async (req, res) => {
+const createUserIfEmailIsVerified = async (req, res) => {
   if (req.oidc.isAuthenticated()) {
-    res.send('Welcome to Khazar auth api');
+    const { nickname, email_verified, email } = req.oidc.user;
+    if (!email_verified) {
+      try {
+        await new UserModel({ nickname, email }).save();
+        res.status(StatusCode.CREATED);
+        res.send(
+          `Welcome ${nickname}!\n You need to verify your email before be able to use this API.`
+        );
+      } catch (error) {
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+          message:
+            'You have to verify your email or logout and login again if you have done that.',
+        });
+      }
+    } else {
+      res.send(`Cheers ${nickname}!`);
+    }
   } else {
-    response.writeHead(302, {
+    res.writeHead(StatusCode.FOUND, {
       Location: '/login',
     });
-    response.end();
+    res.end();
   }
 };
+//TODO SE MINA VINER
+
+
+
+
 
 export default {
-  homePage,
   createUser,
   getAllUSers,
   getUserById,
@@ -127,4 +218,6 @@ export default {
   updateUser,
   deleteUserById,
   getUserByUserNameQueryWithoutAuth,
+  createUserIfEmailIsVerified,
+  addMyFavoriteWine,
 };

@@ -6,16 +6,15 @@ import path from 'path';
 import AUTH0 from 'express-openid-connect';
 
 import middleWares from './src/middleware/MiddleWares.js';
-import Configuration from './config/Configuration.js';
+import DBConfiguration from './config/DBConfiguration.js';
 import AuthConfiguration from './config/AuthConfiguration.js';
 import UserRoutes from './src/routes/User.routes.js';
 
-const { auth } = AUTH0;
+const { auth, requiresAuth } = AUTH0;
 
 const __dirname = path.resolve();
 
 const app = express();
-
 
 app.use(auth(AuthConfiguration.AUTHCONFIG));
 app.use(express.urlencoded({ extended: true }));
@@ -29,8 +28,8 @@ app.use(
   })
 );
 
-Configuration.connectToDB();
-Configuration.connectToPort(app);
+DBConfiguration.connectToDB();
+DBConfiguration.connectToPort(app);
 
 // app.get('/', (req, res) => {
 //   res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
@@ -39,7 +38,6 @@ Configuration.connectToPort(app);
 // app.get('/profile', requiresAuth(), (req, res) => {
 //   res.send(JSON.stringify(req.oidc.user));
 // });
-
 UserRoutes.routes(app);
 
 app.use(middleWares.notFound);
