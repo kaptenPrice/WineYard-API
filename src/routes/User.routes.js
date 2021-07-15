@@ -18,7 +18,8 @@ const routes = (app) => {
   app.delete('/delete/:wineId', requiresAuth(), WineController.deleteWineById);
 
   //USER ROUTS
-  app.get('/user/addfavoritewine/:wineId', UserController.addMyFavoriteWine);
+  app.patch('/user/addfavoritewine/:wineId', UserController.addMyFavoriteWine);
+  app.put('/user/add/:wineId', UserController.deleteWineFromUsersList);
 
   //ADMIN ROUTS - USER
   app.post('/createuser', UserController.createUser);
