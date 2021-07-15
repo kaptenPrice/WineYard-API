@@ -13,7 +13,7 @@ const addWine = async (req, res) => {
           .send({ message: 'Cannot insert empty values' });
       }
       const response = await new WineModel({
-        name,
+        name: name.toUpperCase(),
         country,
         description,
         grapes,

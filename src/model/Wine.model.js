@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
-//import uniqueValidator from 'mongoose-unique-validator';
 
 export const WineSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
       unique: true,
+      required: true,
     },
     country: { type: String, required: true },
     description: { type: String },
@@ -17,8 +16,6 @@ export const WineSchema = mongoose.Schema(
     timestamps: true,
   }
 );
-
-// WineSchema.plugin(uniqueValidator);
 
 const WineModel = mongoose.model('wines', WineSchema);
 export default WineModel;

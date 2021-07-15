@@ -19,15 +19,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^8.6.0",
     "express": "^4.17.1",
     "express-openid-connect": "^2.4.0",
     "helmet": "^4.6.0",
-    "method-override": "^3.0.0",
     "mongoose": "^5.12.7",
-    "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.10.0"
   },
   "devDependencies": {

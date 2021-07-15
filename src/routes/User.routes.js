@@ -19,7 +19,7 @@ const routes = (app) => {
    */
 
   /** POST requires input from body : name, country, description, grapes, year */
-  app.post('/wine', reqAuth(), WineCtrl.addWine);
+  app.post('/addwine', reqAuth(), WineCtrl.addWine);
 
   /** PATCH requires wineId, uppdates parameters in this.wine */
   app.patch('/wine/:wineId', reqAuth(), WineCtrl.updateWine);
@@ -28,10 +28,10 @@ const routes = (app) => {
   app.get('/getwines', reqAuth(), WineCtrl.getAllWines);
 
   /**GET requires wineId in params, shows wine from collection.wine */
-  app.get('/wines/:wineId', reqAuth(), WineCtrl.getWineById);
+  app.get('/winebyid/:wineId', reqAuth(), WineCtrl.getWineById);
 
   /**GET requires name(wine) in params, shows wine from collection.wine*/
-  app.get('/wine/:name', reqAuth(), WineCtrl.getWineByName);
+  app.get('/winebyname/:name', reqAuth(), WineCtrl.getWineByName);
 
   /**GET requires country in params, shows wine from collection.wine */
   app.get('/winesbycountry/:country', reqAuth(), WineCtrl.getWineByCountry);
@@ -45,7 +45,7 @@ const routes = (app) => {
 
   /**PUT requires wineId, removes this.wine from this.user favoritwines */
   app.put(
-    '/deletewine/:wineId',
+    '/deletefavoritewine/:wineId',
     reqAuth(),
     UserCtrl.deleteWineFromUsersList
   );
@@ -63,7 +63,7 @@ const routes = (app) => {
    */
   //ADMIN ROUTS - USER
   // app.post('/createuser', UserCtrl.createUser);
-  // app.get('/getall', reqAuth(), UserCtrl.getAllUSers);
+   app.get('/getall', reqAuth(), UserCtrl.getAllUSers);
   // app.get('/getuserbyid/:userId', reqAuth(), UserCtrl.getUserById);
   // app.put('/user/:userId', reqAuth(), UserCtrl.updateUser);
   // app.delete('/delete/:userId', reqAuth(), UserCtrl.deleteUserById);
