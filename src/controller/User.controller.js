@@ -172,13 +172,10 @@ const createUserIfEmailIsNotVerified = async (req, res, next) => {
         );
       } catch (error) {
         console.log(error.message);
-        res.status(StatusCode.INTERNAL_SERVER_ERROR).send(
-          {
-            message:
-              'You have to verify your email or logout and login again if you have done that.',
-          },
-     
-        );
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+          message:
+            'You have to verify your email or logout and login again if you have done that.',
+        });
       }
     } else {
       next();
@@ -197,8 +194,12 @@ const showProfile = async (req, res) => {
     try {
       // const { email } = await req.oidc.user;
 
-      const response = await UserModel.findOne({ email });
-      res.status(StatusCode.OK).send(response);
+      const profile = await UserModel.findOne({ email });
+      const favoriteWines = await WineModel.find({
+        _id: { $in: profile.favoriteWines },
+      });
+      const { nickname } = profile;
+      res.status(StatusCode.OK).send({ nickname, email, favoriteWines });
     } catch (error) {
       res.status(StatusCode.NOTFOUND).send({ error: error.message });
     }
@@ -218,34 +219,31 @@ const addFavoriteWine = async (req, res) => {
   const { email_verified, email } = await req.oidc.user;
   if (email_verified) {
     try {
-      // const { email } = await req.oidc.user;
       const favoriteWine = await WineModel.findById(req.params.wineId);
 
       if (favoriteWine !== null || favoriteWine !== undefined) {
-        const { name, _id, country, description, grapes, year } = favoriteWine;
+        const { _id } = favoriteWine;
 
         const authenticatedUser = await UserModel.findOneAndUpdate(
           email,
-          {
-            $addToSet: {
-              favoriteWines: { name, _id, country, description, grapes, year },
-            },
-          },
+          { $addToSet: { favoriteWines: _id } },
           { new: true }
         );
 
-        res.status(StatusCode.OK).send(authenticatedUser.favoriteWines);
+        res.status(StatusCode.OK).end();
       }
     } catch (error) {
       if (error.message.includes('null')) {
         res.status(StatusCode.NOTFOUND).send({
           message: `Sorry from the sober API but you maybe took to many glasses of ${req.params.wineId}  is not a valid Id`,
         });
-      } else if (error.message.includes('Cast')) {
-        res.status(StatusCode.BAD_REQUEST).send({
-          message: `Sorry but you need a ID to add a wine to your list`,
-        });
-      } else if (!req.params) {
+      }
+      // else if (error.message.includes('Cast')) {
+      //   res.status(StatusCode.BAD_REQUEST).send({
+      //     message: `Sorry but you need a ID to add a wine to your list`,
+      //   });
+      // }
+      else if (!req.params) {
         res.status(StatusCode.METHOD_NOT_ALLOWED).send({
           message: `Sorry but thats not a valid ID:  ${req.params.wineId} `,
         });
@@ -316,7 +314,6 @@ export default {
   getUserByUserNameQuery,
   updateUser,
   deleteUserById,
-  // getUserByUserNameQueryWithoutAuth,
   createUserIfEmailIsNotVerified,
   addFavoriteWine,
   deleteWineFromUsersList,
