@@ -144,12 +144,13 @@ const createUserIfEmailIsNotVerified = async (req, res, next) => {
     const { nickname, email_verified, email } = req.oidc.user;
     if (!email_verified) {
       try {
-        await new UserModel({ nickname, email }).save();
-
-        await res.redirect(
-          `Welcome ${nickname}!\n You need to verify your email before be able to use this API. `,
-          '/logout'
+       await UserModel.findOneAndUpdate(
+          { email },
+          { email, nickname },
+          { upsert: true }
         );
+
+        await res.redirect(403, '/logout');
       } catch (error) {
         console.log(error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
