@@ -1,15 +1,7 @@
-import UserCtrl from '../controller/User.controller.js';
-import WineCtrl from '../controller/Wine.controller.js';
-import AUTH0 from 'express-openid-connect';
-import UserController from '../controller/User.controller.js';
-
-const { requiresAuth: reqAuth } = AUTH0;
-
-const routes = (app) => {
   /** GET show this.user profile */
-  app.get('/profile', reqAuth(), UserCtrl.showProfile);
+  // app.get('/profile', reqAuth(), UserCtrl.showProfile);
 
-  app.get('/', UserCtrl.createUserIfEmailIsNotVerified, UserCtrl.showProfile);
+  // app.get('/', UserCtrl.createUserIfEmailIsNotVerified, UserCtrl.showProfile);
 
   /** DELETE requires wineId, removes this.wine from collection.wines*/
   app.delete('/delete/:wineId', reqAuth(), WineCtrl.deleteWineById);
@@ -49,26 +41,4 @@ const routes = (app) => {
     reqAuth(),
     UserCtrl.deleteWineFromUsersList
   );
-
-  /**
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   */
-  //ADMIN ROUTS - USER
-  // app.post('/createuser', UserCtrl.createUser);
-  // app.get('/getall', reqAuth(), UserCtrl.getAllUSers);
-  // app.get('/getuserbyid/:userId', reqAuth(), UserCtrl.getUserById);
-  // app.put('/user/:userId', reqAuth(), UserCtrl.updateUser);
-  // app.delete('/delete/:userId', reqAuth(), UserCtrl.deleteUserById);
-};
-
-export default {
-  routes,
-};
+  app.get("/apimap", UserController.apiMap)

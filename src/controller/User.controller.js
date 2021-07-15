@@ -1,7 +1,6 @@
 import UserModel from '../model/User.model.js';
 import StatusCode from '../../config/StatusCode.js';
 import WineModel from '../model/Wine.model.js';
-
 /**
  * Admin-functions */
 
@@ -16,25 +15,6 @@ const createUser = async (req, res) => {
         .send({ message: error.message });
     }
   }
-
-  // if (!req.body.username || !req.body.password) {
-  //   res.status(StatusCode.BAD_REQUEST);
-  //   res.send({ message: 'Cannot create a user wth empty value' });
-  //   res.end();
-  // } else {
-  //   const user = new UserModel({
-  //     username: req.body.username,
-  //     password: req.body.password,
-  //   });
-  // try {
-  //   const response = await user.save();
-  //   res.status(StatusCode.CREATED).send(response);
-  // } catch (error) {
-  //   res
-  //     .status(StatusCode.INTERNAL_SERVER_ERROR)
-  //     .send({ message: error.message });
-  // }
-  // }
 };
 
 const getAllUSers = async (req, res) => {
@@ -172,13 +152,10 @@ const createUserIfEmailIsNotVerified = async (req, res, next) => {
         );
       } catch (error) {
         console.log(error.message);
-        res.status(StatusCode.INTERNAL_SERVER_ERROR).send(
-          {
-            message:
-              'You have to verify your email or logout and login again if you have done that.',
-          },
-     
-        );
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+          message:
+            'You have to verify your email or logout and login again if you have done that.',
+        });
       }
     } else {
       next();
@@ -195,8 +172,6 @@ const showProfile = async (req, res) => {
   const { email_verified, email } = await req.oidc.user;
   if (email_verified) {
     try {
-      // const { email } = await req.oidc.user;
-
       const response = await UserModel.findOne({ email });
       res.status(StatusCode.OK).send(response);
     } catch (error) {
@@ -218,24 +193,21 @@ const addFavoriteWine = async (req, res) => {
   const { email_verified, email } = await req.oidc.user;
   if (email_verified) {
     try {
-      // const { email } = await req.oidc.user;
       const favoriteWine = await WineModel.findById(req.params.wineId);
 
-      if (favoriteWine !== null || favoriteWine !== undefined) {
-        const { name, _id, country, description, grapes, year } = favoriteWine;
+      const { name, _id, country, description, grapes, year } = favoriteWine;
 
-        const authenticatedUser = await UserModel.findOneAndUpdate(
-          email,
-          {
-            $addToSet: {
-              favoriteWines: { name, _id, country, description, grapes, year },
-            },
+      const authenticatedUser = await UserModel.findOneAndUpdate(
+        email,
+        {
+          $addToSet: {
+            favoriteWines: { name, _id, country, description, grapes, year },
           },
-          { new: true }
-        );
+        },
+        { new: true }
+      );
 
-        res.status(StatusCode.OK).send(authenticatedUser.favoriteWines);
-      }
+      res.status(StatusCode.OK).send(authenticatedUser.favoriteWines);
     } catch (error) {
       if (error.message.includes('null')) {
         res.status(StatusCode.NOTFOUND).send({
@@ -247,7 +219,7 @@ const addFavoriteWine = async (req, res) => {
         });
       } else if (!req.params) {
         res.status(StatusCode.METHOD_NOT_ALLOWED).send({
-          message: `Sorry but thats not a valid ID:  ${req.params.wineId} `,
+          message: `Sorry but thats not a valid ID:  ${req.params} `,
         });
       } else {
         res
@@ -269,15 +241,15 @@ const deleteWineFromUsersList = async (req, res) => {
   const { email_verified, email } = await req.oidc.user;
   if (email_verified) {
     try {
-      // const { email } = await req.oidc.user;
       const reqWineIdInFavoriteWines = await UserModel.find(
         { email },
         {
           favoriteWines: { $elemMatch: { _id: req.params.wineId } },
         }
       );
+      console.log(reqWineIdInFavoriteWines);
 
-      if (reqWineIdInFavoriteWines[0].favoriteWines.length !== 0) {
+      if (reqWineIdInFavoriteWines[0]?.favoriteWines.length !== 0) {
         const authenticatedUser = await UserModel.findOneAndUpdate(
           { email },
           {
@@ -285,7 +257,8 @@ const deleteWineFromUsersList = async (req, res) => {
           },
           { new: true }
         );
-        authenticatedUser.favoriteWines.length > 0
+
+        authenticatedUser?.favoriteWines.length > 0
           ? res.status(StatusCode.OK).send(authenticatedUser.favoriteWines)
           : res.status(StatusCode.OK).send(authenticatedUser);
       } else {
@@ -296,7 +269,7 @@ const deleteWineFromUsersList = async (req, res) => {
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .send({ message: error.message });
+        .send({ error: error.message });
     }
   } else {
     res
@@ -316,7 +289,6 @@ export default {
   getUserByUserNameQuery,
   updateUser,
   deleteUserById,
-  // getUserByUserNameQueryWithoutAuth,
   createUserIfEmailIsNotVerified,
   addFavoriteWine,
   deleteWineFromUsersList,
