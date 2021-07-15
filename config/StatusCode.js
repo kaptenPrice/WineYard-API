@@ -5,6 +5,7 @@ const CREATED = 201;
 
 //300 errors
 const FOUND = 302;
+const TEMPORARY_REDIRECT=307
 
 //400 errors
 const BAD_REQUEST = 400;
@@ -20,6 +21,7 @@ export default {
   OK,
   CREATED,
   FOUND,
+  TEMPORARY_REDIRECT,
   BAD_REQUEST,
   NOTFOUND,
   UNAUTHORIZED,

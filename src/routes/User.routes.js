@@ -40,14 +40,14 @@ const routes = (app) => {
 
   /**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
   app.patch(
-    '/user/addfavoritewine/:wineId',
+    '/addfavoritewine/:wineId',
     reqAuth(),
     UserCtrl.addFavoriteWine
   );
 
   /**PUT requires wineId, removes this.wine from this.user favoritwines */
   app.put(
-    '/user/deletewine/:wineId',
+    '/deletewine/:wineId',
     reqAuth(),
     UserCtrl.deleteWineFromUsersList
   );
