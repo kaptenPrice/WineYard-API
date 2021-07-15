@@ -1,38 +1,74 @@
-import UserController from '../controller/User.controller.js';
-import WineController from '../controller/Wine.controller.js';
+import UserCtrl from '../controller/User.controller.js';
+import WineCtrl from '../controller/Wine.controller.js';
 import AUTH0 from 'express-openid-connect';
 
-const { requiresAuth } = AUTH0;
+const { requiresAuth: reqAuth } = AUTH0;
 
 const routes = (app) => {
-  //ADMIN ROUTS - WINELIST
-  app.get('/', UserController.createUserIfEmailIsVerified);
-  app.post('/wine', WineController.addWine);
-  app.get('/getwines', WineController.getAllWines);
-  app.get('/wines/:wineId', WineController.getWineById);
-  app.get('/wine/:name', WineController.getWineByName);
-  app.get('/winesbycountry/:country', WineController.getWineByCountry);
+  /** GET show this.user profile */
+  app.get('/profile', reqAuth(), UserCtrl.showProfile);
 
-  app.patch('/wine/:wineId', WineController.updateWine);
+  app.get('/', UserCtrl.createUserIfEmailIsNotVerified, UserCtrl.showProfile);
 
-  app.delete('/delete/:wineId', requiresAuth(), WineController.deleteWineById);
+  /** DELETE requires wineId, removes this.wine from collection.wines*/
+  app.delete('/delete/:wineId', reqAuth(), WineCtrl.deleteWineById);
+  /**
+   *
+   *
+   *
+   *
+   *
+   */
 
-  //USER ROUTS
-  app.patch('/user/addfavoritewine/:wineId', UserController.addMyFavoriteWine);
-  app.put('/user/add/:wineId', UserController.deleteWineFromUsersList);
+  /** POST requires input from body : name, country, description, grapes, year */
+  app.post('/wine', reqAuth(), WineCtrl.addWine);
 
-  //ADMIN ROUTS - USER
-  app.post('/createuser', UserController.createUser);
-  app.get('/getall', requiresAuth(), UserController.getAllUSers);
-  app.get('/getuserbyid/:userId', requiresAuth(), UserController.getUserById);
-  //app.get('/search', requiresAuth(), UserController.getUserByUserNameQuery);
-  app.get(
-    '/M/:username',
-    UserController.getUserByUserNameQueryWithoutAuth,
-    UserController.getUserByUserNameQuery
+  /** PATCH requires wineId, uppdates parameters in this.wine */
+  app.patch('/wine/:wineId', reqAuth(), WineCtrl.updateWine);
+
+  /** GET get all wines in Winelist-API -> Collection Wines  */
+  app.get('/getwines', reqAuth(), WineCtrl.getAllWines);
+
+  /**GET requires wineId in params, shows wine from collection.wine */
+  app.get('/wines/:wineId', reqAuth(), WineCtrl.getWineById);
+
+  /**GET requires name(wine) in params, shows wine from collection.wine*/
+  app.get('/wine/:name', reqAuth(), WineCtrl.getWineByName);
+
+  /**GET requires country in params, shows wine from collection.wine */
+  app.get('/winesbycountry/:country', reqAuth(), WineCtrl.getWineByCountry);
+
+  /**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
+  app.patch(
+    '/user/addfavoritewine/:wineId',
+    reqAuth(),
+    UserCtrl.addFavoriteWine
   );
-  app.put('/user/:userId', requiresAuth(), UserController.updateUser);
-  app.delete('/delete/:userId', requiresAuth(), UserController.deleteUserById);
+
+  /**PUT requires wineId, removes this.wine from this.user favoritwines */
+  app.put(
+    '/user/deletewine/:wineId',
+    reqAuth(),
+    UserCtrl.deleteWineFromUsersList
+  );
+
+  /**
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   */
+  //ADMIN ROUTS - USER
+  // app.post('/createuser', UserCtrl.createUser);
+  // app.get('/getall', reqAuth(), UserCtrl.getAllUSers);
+  // app.get('/getuserbyid/:userId', reqAuth(), UserCtrl.getUserById);
+  // app.put('/user/:userId', reqAuth(), UserCtrl.updateUser);
+  // app.delete('/delete/:userId', reqAuth(), UserCtrl.deleteUserById);
 };
 
 export default {
