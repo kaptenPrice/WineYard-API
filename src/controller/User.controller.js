@@ -144,12 +144,11 @@ const createUserIfEmailIsNotVerified = async (req, res, next) => {
     const { nickname, email_verified, email } = req.oidc.user;
     if (!email_verified) {
       try {
-       await UserModel.findOneAndUpdate(
+        await UserModel.findOneAndUpdate(
           { email },
-          { email, nickname },
+          { email, nickname, favoriteWines: [] },
           { upsert: true }
         );
-
         await res.redirect(403, '/logout');
       } catch (error) {
         console.log(error.message);
@@ -176,6 +175,7 @@ const showProfile = async (req, res) => {
       const response = await UserModel.findOne({ email });
       res.status(StatusCode.OK).send(response);
     } catch (error) {
+      console.log(error.message);
       res.status(StatusCode.NOTFOUND).send({ error: error.message });
     }
   } else {
