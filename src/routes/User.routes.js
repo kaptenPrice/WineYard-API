@@ -1,7 +1,6 @@
 import UserCtrl from '../controller/User.controller.js';
 import WineCtrl from '../controller/Wine.controller.js';
 import AUTH0 from 'express-openid-connect';
-import UserController from '../controller/User.controller.js';
 
 const { requiresAuth: reqAuth } = AUTH0;
 

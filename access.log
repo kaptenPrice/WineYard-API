@@ -1154,3 +1154,8 @@
 ::1 - - [15/Jul/2021:20:30:53 +0000] "GET /winebyid/60f09862e7ca171ce492f8ca HTTP/1.1" 200 156
 ::1 - - [15/Jul/2021:20:31:46 +0000] "GET /winebyname/redwine HTTP/1.1" 302 158
 ::1 - - [15/Jul/2021:20:32:37 +0000] "GET /winesbycountry/USA HTTP/1.1" 302 2607
+::1 - - [15/Jul/2021:20:37:38 +0000] "GET /winescountry/Californien HTTP/1.1" 404 1932
+::1 - - [15/Jul/2021:20:37:40 +0000] "GET /winescountry/Californien HTTP/1.1" 404 1932
+::1 - - [15/Jul/2021:20:38:02 +0000] "GET /winesbycountry/california HTTP/1.1" 404 53
+::1 - - [15/Jul/2021:20:38:06 +0000] "GET /winesbycountry/usa HTTP/1.1" 404 46
+::1 - - [15/Jul/2021:20:38:11 +0000] "GET /winesbycountry/USA HTTP/1.1" 302 2607

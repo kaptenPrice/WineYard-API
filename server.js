@@ -10,7 +10,7 @@ import DBConfiguration from './config/DBConfiguration.js';
 import AuthConfiguration from './config/AuthConfiguration.js';
 import UserRoutes from './src/routes/User.routes.js';
 
-const { auth, requiresAuth } = AUTH0;
+const { auth } = AUTH0;
 
 const __dirname = path.resolve();
 
@@ -31,13 +31,7 @@ app.use(
 DBConfiguration.connectToDB();
 DBConfiguration.connectToPort(app);
 
-// app.get('/', (req, res) => {
-//   res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
-// });
 
-// app.get('/profile', requiresAuth(), (req, res) => {
-//   res.send(JSON.stringify(req.oidc.user));
-// });
 UserRoutes.routes(app);
 
 app.use(middleWares.notFound);
