@@ -3,13 +3,17 @@ import mongoose from 'mongoose';
 
 export const WineSchema = mongoose.Schema(
   {
-    wineName: {
+    name: {
       type: String,
       required: true,
-      //unique: true,
     },
     country: { type: String, required: true },
+    description: { type: String },
+    grapes: { type: String },
+    name: { type: String },
+    year: { type: String },
   },
+
   {
     timestamps: true,
   }
