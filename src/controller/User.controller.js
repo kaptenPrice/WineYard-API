@@ -1,40 +1,63 @@
 import UserModel from '../model/User.model.js';
 import StatusCode from '../../config/StatusCode.js';
 import WineModel from '../model/Wine.model.js';
+import PasswordUtils from '../lib/PasswordUtils.js';
 
 /**
  * Admin-functions */
-
-const createUser = async (req, res) => {
-  if (req.oidc.isAuthenticated() && !email_verified) {
-    try {
-      new UserModel({ nickname, email }).save();
-      res.status(StatusCode.CREATED).send(response);
-    } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .send({ message: error.message });
-    }
+/**
+ * POST
+ * @param {*password, username} req
+ * @param {*redirect("/login")} res
+ * @param {*null} next
+ */
+const handleRegister = async (req, res, next) => {
+  const saltHash = PasswordUtils.passwordGenerator(req.body.password);
+  const salt = saltHash.salt;
+  const hash = saltHash.hash;
+  try {
+    await new UserModel({
+      username: req.body.username,
+      hash: hash,
+      salt: salt,
+    })
+      .save()
+      .then((data) => console.log(data)); 
+    res.redirect('/login');
+  } catch (error) {
+    res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+      error: error.message,
+      message: 'error in register in usercontroller.register',
+    });
   }
-
-  // if (!req.body.username || !req.body.password) {
-  //   res.status(StatusCode.BAD_REQUEST);
-  //   res.send({ message: 'Cannot create a user wth empty value' });
-  //   res.end();
-  // } else {
-  //   const user = new UserModel({
-  //     username: req.body.username,
-  //     password: req.body.password,
-  //   });
-  // try {
-  //   const response = await user.save();
-  //   res.status(StatusCode.CREATED).send(response);
-  // } catch (error) {
-  //   res
-  //     .status(StatusCode.INTERNAL_SERVER_ERROR)
-  //     .send({ message: error.message });
-  // }
-  // }
+};
+/**
+ * GET
+ * @param {*null} req
+ * @param {*registerForm} res
+ * @param {*null} next
+ */
+const getRegisterForm = (req, res, next) => {
+  const registerForm =
+    '<h1>Register Page</h1><form method="post" action="register">\
+Enter Username:<br><input type="text" name="username">\
+<br>Enter Password:<br><input type="password" name="password">\
+<br><br><input type="submit" value="Submit"></form>';
+  res.send(registerForm);
+};
+/**
+ * GET
+ * @param {*null} req
+ * @param {*loginForm} res
+ * @param {*null} next
+ */
+const getLoginForm = (req, res, next) => {
+  const loginForm =
+    '<h1>Login Page</h1><form method="POST" action="/login">\
+  Enter Username:<br><input type="text" name="username">\
+  <br>Enter Password:<br><input type="password" name="password">\
+  <br><br><input type="submit" value="Submit"></form>';
+  res.send(loginForm);
 };
 
 const getAllUSers = async (req, res) => {
@@ -189,7 +212,12 @@ const createUserIfEmailIsNotVerified = async (req, res, next) => {
 };
 
 const showProfile = async (req, res) => {
-  const { email_verified, email } = await req.oidc.user;
+  try {
+    await res.status(200).send({ message: 'Gick bra ' });
+  } catch (error) {
+    res.status(400).send({ message: 'Gick INTE bra ' });
+  }
+  /* const { email_verified, email } = await req.oidc.user;
   if (email_verified) {
     try {
       // const { email } = await req.oidc.user;
@@ -207,7 +235,7 @@ const showProfile = async (req, res) => {
     res
       .status(StatusCode.UNAUTHORIZED)
       .send({ message: 'Please verify Email first then log in again' });
-  }
+  }*/
 };
 
 /**
@@ -221,31 +249,31 @@ const addFavoriteWine = async (req, res) => {
     try {
       const favoriteWine = await WineModel.findById(req.params.wineId);
 
-      if (favoriteWine !== null || favoriteWine !== undefined) {
-        const { _id } = favoriteWine;
+      const { name, _id, country, description, grapes, year } = favoriteWine;
 
-        const authenticatedUser = await UserModel.findOneAndUpdate(
-          email,
-          { $addToSet: { favoriteWines: _id } },
-          { new: true }
-        );
+      const authenticatedUser = await UserModel.findOneAndUpdate(
+        email,
+        {
+          $addToSet: {
+            favoriteWines: { name, _id, country, description, grapes, year },
+          },
+        },
+        { new: true }
+      );
 
-        res.status(StatusCode.OK).end();
-      }
+      res.status(StatusCode.OK).send(authenticatedUser.favoriteWines);
     } catch (error) {
       if (error.message.includes('null')) {
         res.status(StatusCode.NOTFOUND).send({
           message: `Sorry from the sober API but you maybe took to many glasses of ${req.params.wineId}  is not a valid Id`,
         });
-      }
-      // else if (error.message.includes('Cast')) {
-      //   res.status(StatusCode.BAD_REQUEST).send({
-      //     message: `Sorry but you need a ID to add a wine to your list`,
-      //   });
-      // }
-      else if (!req.params) {
+      } else if (error.message.includes('Cast')) {
+        res.status(StatusCode.BAD_REQUEST).send({
+          message: `Sorry but you need a ID to add a wine to your list`,
+        });
+      } else if (!req.params) {
         res.status(StatusCode.METHOD_NOT_ALLOWED).send({
-          message: `Sorry but thats not a valid ID:  ${req.params.wineId} `,
+          message: `Sorry but thats not a valid ID:  ${req.params} `,
         });
       } else {
         res
@@ -308,7 +336,9 @@ const deleteWineFromUsersList = async (req, res) => {
  */
 export default {
   showProfile,
-  createUser,
+  handleRegister,
+  getRegisterForm,
+  getLoginForm,
   getAllUSers,
   getUserById,
   getUserByUserNameQuery,

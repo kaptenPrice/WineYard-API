@@ -20,6 +20,11 @@ const connectToDB = async () => {
   }
 };
 
+// const connectToSessionConn = mongoose.create(DB_URL, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// });
+
 const connectToPort = (app) => {
   app.listen(port, () => {
     console.log(`__ THE LONELY SERVER IS UP AND RUNNING ON __ ${port}`);
