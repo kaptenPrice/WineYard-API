@@ -10,6 +10,7 @@ const UserSchema = mongoose.Schema(
     salt: String,
     email: String,
     favoriteWines: [WineSchema],
+    admin: Boolean,
   },
   {
     timestamps: true,

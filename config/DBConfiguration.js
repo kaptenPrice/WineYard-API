@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
+import MongoStore from 'connect-mongo';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const port = process.env.PORT;
@@ -13,17 +15,16 @@ const connectToDB = async () => {
       useFindAndModify: false,
       useCreateIndex: true,
     });
-    console.log('***__--__SUCCESSFULLY CONNECTED TO MONGO_Db__--__***');
+    console.log('***SUCCESSFULLY CONNECTED TO MONGO_DB***');
   } catch (error) {
     console.log('ERROR WHILE TRY CONNECTING TO DB', error);
     process.exit();
   }
 };
-
-// const connectToSessionConn = mongoose.create(DB_URL, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+//TODO neccessary to intit the dbName?
+const sessionStore = MongoStore.create({
+  mongoUrl: process.env.DB_URL,
+});
 
 const connectToPort = (app) => {
   app.listen(port, () => {
@@ -31,4 +32,4 @@ const connectToPort = (app) => {
   });
 };
 
-export default { connectToDB, connectToPort };
+export default { connectToDB, connectToPort, sessionStore };

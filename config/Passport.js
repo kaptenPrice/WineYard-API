@@ -1,14 +1,56 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-// import DBConfiguration from './DBConfiguration';
 import UserModel from '../src/model/User.model.js';
-// import { passwordValidator } from '../src/lib/PasswordUtils';
 import PasswordUtils from '../src/lib/PasswordUtils.js';
 
+import fs from "fs";
+import path from "path"
+import UserModel from '../src/model/User.model.js';
+
+// const pathToKey= path.join(__dirname, "..", "id_rsa_pub.pem" )
+// const PUB_KEY= fs.readFileSync(pathToKey, "utf-8")
+
+
+// const options={
+
+// }
+
+// export const passport=(pass)=>{
+
+// }
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
+
+//local strategy
 const verifyCallback = (username, password, done) => {
-  UserModel.findOne({ username: username })
+  UserModel.findOne({  username })
     .then((user) => {
-      console.log(user._id);
       if (!user) {
         return done(nul, false);
       }
@@ -31,6 +73,8 @@ const verifyCallback = (username, password, done) => {
 const strategy = new LocalStrategy(verifyCallback);
 passport.use(strategy);
 
+
+
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -44,3 +88,6 @@ passport.deserializeUser((userId, done) => {
       done(error);
     });
 });
+
+// END of LocalStrategy
+

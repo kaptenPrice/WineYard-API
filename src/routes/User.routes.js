@@ -1,7 +1,7 @@
 import UserCtrl from '../controller/User.controller.js';
 import WineCtrl from '../controller/Wine.controller.js';
 import passport from 'passport';
-
+import { isAdmin, isAuth } from '../middleware/AuthMiddleWare.js';
 // import AUTH0 from 'express-openid-connect';
 
 // const { requiresAuth: reqAuth } = AUTH0;
@@ -18,12 +18,29 @@ const routes = (app) => {
       successRedirect: '/loginsucces',
     })
   );
-  app.get("/loginfailure", (_, res, next)=>{
-    res.send("You entered wrong password")
-  })
-  app.get("/loginsucces", (_, res, next)=>{
-    res.send("Welcome you made it")
-  })
+  app.get('/loginfailure', (_, res, next) => {
+    res.send('You entered wrong password');
+  });
+  app.get('/loginsucces', (_, res, next) => {
+    res.send(
+      '<p>You successfully logged in. --> <a href="/protectedroute">Go to protected route</a></p>'
+    );
+  });
+   app.get('/admin',isAdmin, (_, res, next) => {
+    res.send(
+      '<p>You successfully logged in as ADMIN. --> <a href="/protectedroute">Go to protected route</a></p>'
+    );
+  });
+
+  app.get('/protectedroute', isAuth, (_, res) => {
+    res.send(
+      '<p>You successfully logged in to wineApi.<br> click here to logout <a href="/logout">logout</a> <br>Click here to log in <a href="/logout">login</a></p>'
+    );
+  });
+  app.get('/logout', (req, res) => {
+    req.logout();
+    res.redirect('/protectedroute');
+  });
   /** GET show this.user profile */
   // app.get('/', /* reqAuth()*/ UserCtrl.showProfile);
 

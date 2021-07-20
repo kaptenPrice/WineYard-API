@@ -20,9 +20,10 @@ const handleRegister = async (req, res, next) => {
       username: req.body.username,
       hash: hash,
       salt: salt,
+      admin:false
     })
       .save()
-      .then((data) => console.log(data)); 
+      .then((data) => console.log(data));
     res.redirect('/login');
   } catch (error) {
     res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
@@ -42,7 +43,7 @@ const getRegisterForm = (req, res, next) => {
     '<h1>Register Page</h1><form method="post" action="register">\
 Enter Username:<br><input type="text" name="username">\
 <br>Enter Password:<br><input type="password" name="password">\
-<br><br><input type="submit" value="Submit"></form>';
+<br><br><input type="submit" value="Register"></form>';
   res.send(registerForm);
 };
 /**
@@ -56,7 +57,7 @@ const getLoginForm = (req, res, next) => {
     '<h1>Login Page</h1><form method="POST" action="/login">\
   Enter Username:<br><input type="text" name="username">\
   <br>Enter Password:<br><input type="password" name="password">\
-  <br><br><input type="submit" value="Submit"></form>';
+  <br><br><input type="submit" value="Log in"></form>';
   res.send(loginForm);
 };
 
