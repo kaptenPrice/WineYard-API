@@ -1,23 +1,23 @@
-import mongoose from 'mongoose';
-import uniqueValidator from 'mongoose-unique-validator';
-import { WineSchema } from './Wine.model.js';
+import mongoose from 'mongoose'
+import uniqueValidator from 'mongoose-unique-validator'
+import { WineSchema } from './Wine.model.js'
 
 const UserSchema = mongoose.Schema(
-  {
-    nickname: String,
-    username: String,
-    hash: String,
-    salt: String,
-    email: String,
-    favoriteWines: [WineSchema],
-    admin: Boolean,
-  },
-  {
-    timestamps: true,
-  }
-);
-UserSchema.plugin(uniqueValidator);
+	{
+		nickname: String,
+		username: String,
+		hash: String,
+		salt: String,
+		email: String,
+		favoriteWines: [WineSchema],
+		admin: Boolean
+	},
+	{
+		timestamps: true
+	}
+)
+UserSchema.plugin(uniqueValidator)
 
-const UserModel = mongoose.model('user', UserSchema);
+const UserModel = mongoose.model('user', UserSchema)
 
-export default UserModel;
+export default UserModel

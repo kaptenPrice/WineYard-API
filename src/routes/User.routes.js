@@ -1,112 +1,89 @@
 import UserCtrl from '../controller/User.controller.js';
 import WineCtrl from '../controller/Wine.controller.js';
-import passport from 'passport';
-import { isAdmin, isAuth } from '../middleware/AuthMiddleWare.js';
-// import AUTH0 from 'express-openid-connect';
-
-// const { requiresAuth: reqAuth } = AUTH0;
-
+import path from 'path';
+import passwordUtils from '../lib/PasswordUtils.js';
+const __dirname = path.resolve();
+const availableRoutes = [
+	'/register ',
+	'/login ',
+	'/profile ',
+	'/logout ',
+	'/wine/add ',
+	'/wine/update ',
+	'/wine/getall',
+	'/wine/getbyid ',
+	'/wine/getbyname ',
+	'/wine/bycountry ',
+	'/wine/delete ',
+	'/user/addfavoritewine ',
+	'/user/deletewine ',
+	'/user/getall',
+	'/user/getbyid '
+];
 const routes = (app) => {
-  //Register Page
-  app.get('/register', UserCtrl.getRegisterForm);
-  app.get('/login', UserCtrl.getLoginForm);
-  app.post('/register', UserCtrl.handleRegister);
-  app.post(
-    '/login',
-    passport.authenticate('local', {
-      failureRedirect: '/loginfailure',
-      successRedirect: '/loginsucces',
-    })
-  );
-  app.get('/loginfailure', (_, res, next) => {
-    res.send('You entered wrong password');
-  });
-  app.get('/loginsucces', (_, res, next) => {
-    res.send(
-      '<p>You successfully logged in. --> <a href="/protectedroute">Go to protected route</a></p>'
-    );
-  });
-   app.get('/admin',isAdmin, (_, res, next) => {
-    res.send(
-      '<p>You successfully logged in as ADMIN. --> <a href="/protectedroute">Go to protected route</a></p>'
-    );
-  });
+	//sending layout to login and register
+	app.get('/register', (req, res) => {
+		if (!req.cookies.token) {
+			res.sendFile(path.join(__dirname, 'register.html'));
+		} else {
+			res.redirect('/profile');
+		}
+	});
+	app.get('/login', (req, res) => {
+		if (!req.cookies.token) {
+			res.sendFile(path.join(__dirname, '/login.html'));
+		} else {
+			res.redirect('/profile');
+		}
+	});
+	app.get('/', (req, res) => {
+		res.send({ links: `${Object.values(availableRoutes)}` });
+	});
+	app.post('/register', UserCtrl.handleRegister);
 
-  app.get('/protectedroute', isAuth, (_, res) => {
-    res.send(
-      '<p>You successfully logged in to wineApi.<br> click here to logout <a href="/logout">logout</a> <br>Click here to log in <a href="/logout">login</a></p>'
-    );
-  });
-  app.get('/logout', (req, res) => {
-    req.logout();
-    res.redirect('/protectedroute');
-  });
-  /** GET show this.user profile */
-  // app.get('/', /* reqAuth()*/ UserCtrl.showProfile);
+	app.post('/login', UserCtrl.handleLogin, (req, res) => {
+		res.send({ success: true, message: 'welcome', Goto: '/profile' });
+	});
+	/** GET show this.user profile */
+	app.get('/profile', passwordUtils.authVerifyByCookie, UserCtrl.showProfile);
 
-  // app.get('/', UserCtrl.createUserIfEmailIsNotVerified, UserCtrl.showProfile);
+	app.get('/logout', UserCtrl.logout);
 
-  /** DELETE requires wineId, removes this.wine from collection.wines*/
-  app.delete('/delete/:wineId', WineCtrl.deleteWineById);
-  /**
-   *
-   *
-   *
-   *
-   *
-   */
+	/** POST requires input from body : name, country, description, grapes, year */
+	app.post('/wine/add', passwordUtils.authVerifyByCookie, WineCtrl.addWine);
 
-  /** POST requires input from body : name, country, description, grapes, year */
-  app.post('/wine', WineCtrl.addWine);
+	/** PATCH requires wineId, uppdates parameters in this.wine */
+	app.patch('/wine/update/:wineId', passwordUtils.authVerifyByCookie, WineCtrl.updateWine);
 
-  /** PATCH requires wineId, uppdates parameters in this.wine */
-  app.patch('/wine/:wineId', WineCtrl.updateWine);
+	/** GET get all wines in Winelist-API -> Collection Wines  */
+	app.get('/wine/getall', passwordUtils.authVerifyByCookie, WineCtrl.getAllWines);
 
-  /** GET get all wines in Winelist-API -> Collection Wines  */
-  app.get('/getwines', WineCtrl.getAllWines);
+	/**GET requires wineId in params, shows wine from collection.wine */
+	app.get('/wine/getbyid/:wineId', passwordUtils.authVerifyByCookie, WineCtrl.getWineById);
 
-  /**GET requires wineId in params, shows wine from collection.wine */
-  app.get('/wines/:wineId', WineCtrl.getWineById);
+	/**GET requires name(wine) in params, shows wine from collection.wine*/
+	app.get('/wine/getbyname/:name', passwordUtils.authVerifyByCookie, WineCtrl.getWineByName);
 
-  /**GET requires name(wine) in params, shows wine from collection.wine*/
-  app.get('/wine/:name', WineCtrl.getWineByName);
+	/**GET requires country in params, shows wine from collection.wine */
+	app.get('/wine/bycountry/:country', passwordUtils.authVerifyByCookie, WineCtrl.getWineByCountry);
+	/** DELETE requires wineId, removes this.wine from collection.wines*/
+	app.delete('/wine/delete/:wineId', passwordUtils.authVerifyByCookie, WineCtrl.deleteWineById);
 
-  /**GET requires country in params, shows wine from collection.wine */
-  app.get('/winesbycountry/:country', WineCtrl.getWineByCountry);
+	/**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
+	app.patch('/user/addfavoritewine/:wineId', passwordUtils.authVerifyByCookie, UserCtrl.addFavoriteWine);
 
-  /**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
-  app.patch(
-    '/addfavoritewine/:wineId',
+	/**PUT requires wineId, removes this.wine from this.user favoritwines */
+	app.put('/user/deletewine/:wineId', passwordUtils.authVerifyByCookie, UserCtrl.deleteWineFromUsersList);
 
-    UserCtrl.addFavoriteWine
-  );
-
-  /**PUT requires wineId, removes this.wine from this.user favoritwines */
-  app.put(
-    '/deletewine/:wineId',
-
-    UserCtrl.deleteWineFromUsersList
-  );
-
-  /**
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   */
-  //ADMIN ROUTS - USER
-  // app.post('/createuser', UserCtrl.createUser);
-  // app.get('/getall',   UserCtrl.getAllUSers);
-  // app.get('/getuserbyid/:userId',   UserCtrl.getUserById);
-  // app.put('/user/:userId',   UserCtrl.updateUser);
-  // app.delete('/delete/:userId',   UserCtrl.deleteUserById);
+	/**
+	 */
+	//ADMIN ROUTS - USER
+	app.get('/user/getall', passwordUtils.authVerifyByCookie, UserCtrl.getAllUSers);
+	app.get('/user/getbyid/:userId', passwordUtils.authVerifyByCookie, UserCtrl.getUserById);
+	app.get('/user/getbyname/:username', passwordUtils.authVerifyByCookie, UserCtrl.getUserByUserNameQuery);
+	app.delete('/user/delete/:userId', passwordUtils.authVerifyByCookie, UserCtrl.deleteUserById);
 };
 
 export default {
-  routes,
+	routes
 };
