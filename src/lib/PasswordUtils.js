@@ -8,11 +8,14 @@ dotenv.config();
 
 const __dirname = path.resolve();
 
-const pathToPrivKey = path.join(__dirname, 'id_rsa_priv.pem');
+/* const pathToPrivKey = path.join(__dirname, 'id_rsa_priv.pem');
 const pathToPubKey = path.join(__dirname, 'id_rsa_pub.pem');
 
 const PRIV_KEY = fs.readFileSync(pathToPrivKey, 'utf8');
-const PUB_KEY = fs.readFileSync(pathToPubKey, 'utf8');
+const PUB_KEY = fs.readFileSync(pathToPubKey, 'utf8');  */
+
+const PRIV_KEY = process.env.PRIVATE_KEY;
+const PUB_KEY = process.env.PUBLIC_KEY;
 
 /**Decrypting the hash by salt and compares the resykt with login password
  *@param {password }
@@ -59,7 +62,6 @@ const generateJwt = async (user, res) => {
 		//secure: false, //TODO Set to true in production
 		//httpOnly: true
 	});
-	//return signedToken;
 
 	/**
 	 * (If frontend) then return the token and let the frontend handle cookie
