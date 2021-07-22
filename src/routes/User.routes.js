@@ -37,7 +37,7 @@ const routes = (app) => {
 		}
 	});
 	app.get('/', (req, res) => {
-		res.send({ links: `${Object.values(availableRoutes)}` });
+		res.send({message: "Wine Api",Goto:"/login", links: `${Object.values(availableRoutes)}` });
 	});
 	app.post('/register', UserCtrl.handleRegister);
 

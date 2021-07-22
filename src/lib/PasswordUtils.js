@@ -17,6 +17,19 @@ const PUB_KEY = fs.readFileSync(pathToPubKey, 'utf8');  */
 const PRIV_KEY = process.env.PRIVATE_KEY;
 const PUB_KEY = process.env.PUBLIC_KEY;
 
+/**
+ *Creating salt and hash from password and storing these in db.
+ * @param {password from register}
+ * @returns
+ */
+ const passwordGenerator = (password) => {
+	const salt = crypto.randomBytes(32).toString('hex');
+	const generatedHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+	return {
+		salt: salt,
+		hash: generatedHash
+	};
+};
 /**Decrypting the hash by salt and compares the resykt with login password
  *@param {password }
  *@param {hash stored in the DB}
@@ -27,19 +40,7 @@ const passwordValidator = (password, hash, salt) => {
 	const hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
 	return hash === hashVerify;
 };
-/**
- *Creating salt and hash from password and storing these in db.
- * @param {password from register}
- * @returns
- */
-const passwordGenerator = (password) => {
-	const salt = crypto.randomBytes(32).toString('hex');
-	const generatedHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-	return {
-		salt: salt,
-		hash: generatedHash
-	};
-};
+
 /**
 
  * @param {*user - the user object }
@@ -79,10 +80,10 @@ const authVerifyByToken = async (req, res, next) => {
 	const tokenParts = await req.headers.authorization?.split(' ');
 	if (tokenParts && tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
 		try {
-			const verification = jsonWebToken.verify(tokenParts[1], PUB_KEY, {
+			const payload = jsonWebToken.verify(tokenParts[1], PUB_KEY, {
 				algorithms: ['RS256']
 			});
-			req.jwt = verification;
+			req.jwt = payload;
 			next();
 		} catch (error) {
 			res.status(StatusCode.UNAUTHORIZED).send({
@@ -97,6 +98,7 @@ const authVerifyByToken = async (req, res, next) => {
 	}
 };
 
+
 /**
  * @param {*} req
  * @param {*} res
@@ -107,8 +109,8 @@ const authVerifyByCookie = async (req, res, next) => {
 
 	if (token?.match(/\S+\.\S+\.\S+/) !== null) {
 		try {
-			const verification = jsonWebToken.verify(token, PUB_KEY, { algorithms: ['RS256'] });
-			req.jwt = verification;
+			const payload = jsonWebToken.verify(token, PUB_KEY, { algorithms: ['RS256'] });
+			req.jwt = payload;
 			next();
 		} catch (error) {
 			res.status(StatusCode.UNAUTHORIZED).send({

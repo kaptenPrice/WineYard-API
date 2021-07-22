@@ -3,8 +3,7 @@ import StatusCode from '../../config/StatusCode.js';
 import WineModel from '../model/Wine.model.js';
 import PasswordUtils from '../lib/PasswordUtils.js';
 
-/**
- * Admin-functions */
+
 /**
  * POST
  * @param {*password, username} req
@@ -27,7 +26,12 @@ const handleRegister = async (req, res) => {
 		res.json({ success: false, msg: err });
 	}
 };
-
+/**
+ * POST
+ * @param {*password, username} req
+ * @param {*redirect("/login")} res
+ * @param {*null} next
+ */
 const handleLogin = async (req, res, next) => {
 	const { username, password } = await req.body;
 	if (req.cookies.token) {
@@ -63,7 +67,11 @@ const handleLogin = async (req, res, next) => {
 		}
 	}
 };
-//Clear cookie and redirect to login
+/**
+ * GET
+ * @param {*} req
+ * @param {*redirect("/login")} res
+ */
 const logout = async (req, res) => {
 	try {
 		await res.clearCookie('token');
@@ -72,60 +80,11 @@ const logout = async (req, res) => {
 		res.send({ error: error.message, message: ' Couldnt log out user' });
 	}
 };
-const getAllUSers = async (req, res) => {
-	try {
-		const response = await UserModel.find();
-		res.status(StatusCode.OK).send(response);
-	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			message: error.message
-		});
-	}
-};
-
-const getUserById = async (req, res) => {
-	try {
-		const response = await UserModel.findById(req.params.userId);
-		res.status(StatusCode.OK).send(response);
-	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			error: error.message,
-			message: 'Error occured while trying to retrieve user with ID:' + req.params.userId
-		});
-	}
-};
-
-const getUserByUserNameQuery = async (req, res) => {
-	try {
-		const response = await UserModel.find({
-			username: req.params.username
-		});
-		response.length !== 0
-			? res.status(StatusCode.OK).send(response)
-			: res.status(StatusCode.NOTFOUND).send({
-					message: 'Couldnt find user ' + req.params.username
-			  });
-	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			error: error.message,
-			message: 'Error occured while trying to retrieve user with username:' + req.params.userName
-		});
-	}
-};
-
-const deleteUserById = async (req, res) => {
-	try {
-		const response = await UserModel.findByIdAndDelete(req.params.userId);
-		res.status(StatusCode.OK).send({
-			message: `Successfully deleted: ${response.username} and ID ${response._id}`
-		});
-	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			message: 'Error occured while trying to find and delete user with ID:' + req.params.userId
-		});
-	}
-};
-
+/**
+ * 
+ * @param {Id from sub(jwt sub)} req 
+ * @param {*username  and favoritewines-array} res 
+ */
 const showProfile = async (req, res) => {
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
@@ -214,6 +173,68 @@ const deleteWineFromUsersList = async (req, res) => {
 	}
 };
 
+
+/***
+ * 
+ * 
+ * Admin functions
+ * 
+ * 
+ * 
+ */
+ const getAllUSers = async (req, res) => {
+	try {
+		const response = await UserModel.find();
+		res.status(StatusCode.OK).send(response);
+	} catch (error) {
+		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+			message: error.message
+		});
+	}
+};
+
+const getUserById = async (req, res) => {
+	try {
+		const response = await UserModel.findById(req.params.userId);
+		res.status(StatusCode.OK).send(response);
+	} catch (error) {
+		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+			error: error.message,
+			message: 'Error occured while trying to retrieve user with ID:' + req.params.userId
+		});
+	}
+};
+
+const getUserByUserNameQuery = async (req, res) => {
+	try {
+		const response = await UserModel.find({
+			username: req.params.username
+		});
+		response.length !== 0
+			? res.status(StatusCode.OK).send(response)
+			: res.status(StatusCode.NOTFOUND).send({
+					message: 'Couldnt find user ' + req.params.username
+			  });
+	} catch (error) {
+		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+			error: error.message,
+			message: 'Error occured while trying to retrieve user with username:' + req.params.userName
+		});
+	}
+};
+
+const deleteUserById = async (req, res) => {
+	try {
+		const response = await UserModel.findByIdAndDelete(req.params.userId);
+		res.status(StatusCode.OK).send({
+			message: `Successfully deleted: ${response.username} and ID ${response._id}`
+		});
+	} catch (error) {
+		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
+			message: 'Error occured while trying to find and delete user with ID:' + req.params.userId
+		});
+	}
+};
 /**
  *
  */
