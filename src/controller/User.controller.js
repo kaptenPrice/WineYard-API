@@ -3,46 +3,48 @@ import StatusCode from '../../config/StatusCode.js';
 import WineModel from '../model/Wine.model.js';
 import PasswordUtils from '../lib/PasswordUtils.js';
 
-
 /**
  * POST
- * @param {*password, username} req
+ * @param {*password, email} req
  * @param {*redirect("/login")} res
  * @param {*null} next
  */
 const handleRegister = async (req, res) => {
 	const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
+	console.log(req.body.email);
+
 	try {
 		await new UserModel({
-			username: req.body.username,
+			email: req.body.email,
 			hash,
 			salt
 		})
 			.save()
 			.then((user) => {
-				res.status(StatusCode.OK).send({ user, message: 'Go to /login' });
+				res.status(StatusCode.OK).send({ message: 'Go to /login' });
 			});
 	} catch (err) {
+		console.log(err.message);
 		res.json({ success: false, msg: err });
 	}
 };
 /**
  * POST
- * @param {*password, username} req
+ * @param {*password, email} req
  * @param {*redirect("/login")} res
  * @param {*null} next
  */
 const handleLogin = async (req, res, next) => {
-	const { username, password } = await req.body;
+	const { email, password } = await req.body;
 	if (req.cookies.token) {
 		res.redirect('/');
 	} else {
-		if (username && password) {
+		if (email && password) {
 			try {
-				const user = await UserModel.findOne({ username });
+				const user = await UserModel.findOne({ email });
 				if (!user) {
 					res.status(StatusCode.UNAUTHORIZED).send({
-						message: `Couldnt find user ${username},  go to /register`
+						message: `Couldnt find user ${email},  go to /register`
 					});
 					return;
 				}
@@ -81,9 +83,9 @@ const logout = async (req, res) => {
 	}
 };
 /**
- * 
- * @param {Id from sub(jwt sub)} req 
- * @param {*username  and favoritewines-array} res 
+ *
+ * @param {Id from sub(jwt sub)} req
+ * @param {*username  and favoritewines-array} res
  */
 const showProfile = async (req, res) => {
 	try {
@@ -91,13 +93,14 @@ const showProfile = async (req, res) => {
 		const favoriteWines = await WineModel.find({
 			_id: { $in: profile.favoriteWines }
 		});
-		const { username } = profile;
-		res.status(StatusCode.OK).send({ username, favoriteWines });
+		const { email } = profile;
+		favoriteWines.length !== 0
+			? res.status(StatusCode.OK).send({ email, favoriteWines })
+			: res.status(StatusCode.OK).send({ email, message: 'Empty list' });
 	} catch (error) {
 		res.status(StatusCode.NOTFOUND).send({ error: error.message });
 	}
 };
-
 /**
  *User functions
  * @param {*Wine ID} req
@@ -172,17 +175,12 @@ const deleteWineFromUsersList = async (req, res) => {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}
 };
-
-
-/***
- * 
- * 
+/*
+ *
  * Admin functions
- * 
- * 
- * 
+ *
  */
- const getAllUSers = async (req, res) => {
+const getAllUSers = async (req, res) => {
 	try {
 		const response = await UserModel.find();
 		res.status(StatusCode.OK).send(response);
@@ -235,9 +233,9 @@ const deleteUserById = async (req, res) => {
 		});
 	}
 };
-/**
- *
- */
+
+/****************************************************/
+
 export default {
 	showProfile,
 	handleRegister,
