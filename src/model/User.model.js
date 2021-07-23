@@ -4,13 +4,14 @@ import { WineSchema } from './Wine.model.js'
 
 const UserSchema = mongoose.Schema(
 	{
-		nickname: String,
-		username: String,
 		hash: String,
 		salt: String,
 		email: String,
 		favoriteWines: [WineSchema],
-		admin: Boolean
+		admin: Boolean, 
+		resetPasswordToken: String, 
+		resetPasswordExpires: Date
+
 	},
 	{
 		timestamps: true

@@ -11,8 +11,6 @@ import PasswordUtils from '../lib/PasswordUtils.js';
  */
 const handleRegister = async (req, res) => {
 	const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
-	console.log(req.body.email);
-
 	try {
 		await new UserModel({
 			email: req.body.email,

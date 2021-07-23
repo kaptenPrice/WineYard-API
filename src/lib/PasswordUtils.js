@@ -8,11 +8,6 @@ dotenv.config();
 
 const __dirname = path.resolve();
 
-/* const pathToPrivKey = path.join(__dirname, 'id_rsa_priv.pem');
-const pathToPubKey = path.join(__dirname, 'id_rsa_pub.pem');
-
-const PRIV_KEY = fs.readFileSync(pathToPrivKey, 'utf8');
-const PUB_KEY = fs.readFileSync(pathToPubKey, 'utf8');  */
 
 const PRIV_KEY = process.env.PRIVATE_KEY;
 const PUB_KEY = process.env.PUBLIC_KEY;
