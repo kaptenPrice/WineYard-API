@@ -1,23 +1,20 @@
-import crypto from 'crypto';
-import jsonWebToken from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
-import StatusCode from '../../config/StatusCode.js';
+import crypto, { BinaryLike } from 'crypto';
+import jsonWebToken, { Secret } from 'jsonwebtoken';
+import StatusCode from '../../config/StatusCode';
 import dotenv from 'dotenv';
+import { IUser } from '../model/User.model';
+import { Response, Request, NextFunction } from 'express';
 dotenv.config();
 
-const __dirname = path.resolve();
-
-
-const PRIV_KEY = process.env.PRIVATE_KEY;
-const PUB_KEY = process.env.PUBLIC_KEY;
+const PRIV_KEY: Secret = process.env.PRIVATE_KEY as Secret;
+const PUB_KEY: Secret = process.env.PUBLIC_KEY as Secret;
 
 /**
  *Creating salt and hash from password and storing these in db.
  * @param {password from register}
  * @returns
  */
- const passwordGenerator = (password) => {
+const passwordGenerator = (password: BinaryLike) => {
 	const salt = crypto.randomBytes(32).toString('hex');
 	const generatedHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
 	return {
@@ -31,7 +28,7 @@ const PUB_KEY = process.env.PUBLIC_KEY;
  *@param {salt stored in the DB}
  */
 
-const passwordValidator = (password, hash, salt) => {
+const passwordValidator = (password: BinaryLike, hash: BinaryLike, salt: BinaryLike) => {
 	const hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
 	return hash === hashVerify;
 };
@@ -41,7 +38,7 @@ const passwordValidator = (password, hash, salt) => {
  * @param {*user - the user object }
  * @returns the jwt-token including the users ID as sub in token
  */
-const generateJwt = async (user, res) => {
+const generateJwt = async (user: IUser, res: Response) => {
 	const _id = user._id;
 	const expiresIn = '1d';
 	const expiration = process.env.ENVIROMENT === 'DEVELOPMENT' ? 3600000 : 604800000;
@@ -71,7 +68,7 @@ const generateJwt = async (user, res) => {
 /**
  * @param {*} req pick the token from header
  */
-const authVerifyByToken = async (req, res, next) => {
+const authVerifyByToken = async (req: Request | any, res: Response, next: NextFunction) => {
 	const tokenParts = await req.headers.authorization?.split(' ');
 	if (tokenParts && tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
 		try {
@@ -93,13 +90,12 @@ const authVerifyByToken = async (req, res, next) => {
 	}
 };
 
-
 /**
  * @param {*} req
  * @param {*} res
  * @param {*} next
  */
-const authVerifyByCookie = async (req, res, next) => {
+const authVerifyByCookie = async (req: Request | any, res: Response, next: NextFunction) => {
 	let token = req.cookies.token;
 
 	if (token?.match(/\S+\.\S+\.\S+/) !== null) {

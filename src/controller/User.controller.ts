@@ -1,7 +1,15 @@
-import UserModel from '../model/User.model.js';
-import StatusCode from '../../config/StatusCode.js';
-import WineModel from '../model/Wine.model.js';
-import PasswordUtils from '../lib/PasswordUtils.js';
+import UserModel, { IUser } from '../model/User.model';
+import StatusCode from '../../config/StatusCode';
+import WineModel, { IWine } from '../model/Wine.model';
+import PasswordUtils from '../lib/PasswordUtils';
+import { IHandlerProps } from '../../server';
+import { NextFunction, Request, Response } from 'express';
+import crypto from 'crypto';
+import mongoose from 'mongoose';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /**
  * POST
@@ -9,7 +17,7 @@ import PasswordUtils from '../lib/PasswordUtils.js';
  * @param {*redirect("/login")} res
  * @param {*null} next
  */
-const handleRegister = async (req, res) => {
+const handleRegister: IHandlerProps = async (req, res) => {
 	const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
 	try {
 		await new UserModel({
@@ -32,8 +40,9 @@ const handleRegister = async (req, res) => {
  * @param {*redirect("/login")} res
  * @param {*null} next
  */
-const handleLogin = async (req, res, next) => {
+const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 	const { email, password } = await req.body;
+	console.log(email, password);
 	if (req.cookies.token) {
 		res.redirect('/');
 	} else {
@@ -72,7 +81,7 @@ const handleLogin = async (req, res, next) => {
  * @param {*} req
  * @param {*redirect("/login")} res
  */
-const logout = async (req, res) => {
+const logout: IHandlerProps = async (req, res) => {
 	try {
 		await res.clearCookie('token');
 		res.redirect('/login');
@@ -80,18 +89,100 @@ const logout = async (req, res) => {
 		res.send({ error: error.message, message: ' Couldnt log out user' });
 	}
 };
+
+const handleForgottPassword: IHandlerProps = async (req, res) => {
+	if (req.body.email === '') {
+		res.status(StatusCode.BAD_REQUEST).send('email required');
+	} else {
+		try {
+			const randomByte = crypto.randomBytes(12).toString('hex');
+			const tempToken = mongoose.Types.ObjectId(randomByte);
+			const expiresIn = 3600000;
+			const currentUser = await UserModel.findOneAndUpdate(
+				req.body.email,
+				{
+					resetPasswordToken: tempToken,
+					resetPasswordExpires: Date.now() + expiresIn
+				},
+				{ new: true }
+			);
+
+			const transporter = nodemailer.createTransport({
+				service: 'gmail',
+				auth: {
+					user: process.env.EMAIL,
+					pass: process.env.PASSWORD
+				}
+			});
+			const mailOptions = {
+				from: process.env.EMAIL,
+				to: `${currentUser?.email}`,
+				subject: 'Link to reset password',
+				text:
+					'Password reset email\n\n' +
+					'Click here:\n\n' +
+					`http://localhost:3001/user/reset/${tempToken}\n\n`
+			};
+			console.log('sending Email');
+			transporter.sendMail(mailOptions, (err, response) => {
+				if (err) {
+					console.log('there was an error ', err.message);
+					return res.status(StatusCode.BAD_REQUEST).send(err.message);
+				} else {
+					console.log('Here is res: ', response);
+					res.status(StatusCode.OK).json(`recovery mail sent to ${currentUser?.email}`);
+				}
+			});
+		} catch (error) {
+			res.status(StatusCode.BAD_REQUEST).send({ message: `${req.body.email} dosnt exist` });
+			console.log(error.message);
+		}
+	}
+};
+const handleResetPassword: IHandlerProps = async (req, res) => {
+	const resetPasswordToken = req.params.resetPasswordToken;
+	const user = await UserModel.findOne({
+		resetPasswordToken,
+		resetPasswordExpires: {
+			$gt: Date.now()
+		}
+	});
+	if (user === null) {
+		console.log('Password reset link is invalid or out of date');
+		res.status(StatusCode.BAD_REQUEST).json('Password reset link is invalid or to old');
+	} else {
+		try {
+			const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
+			await user.updateOne(
+				{
+					hash,
+					salt,
+					resetPasswordToken: null,
+					resetPasswordExpires: null
+				},
+				{ new: true }
+			);
+			res.send({ success: true, message: 'Go to /login' });
+		} catch (error) {
+			console.log(error.message);
+		}
+	}
+};
+
 /**
  *
  * @param {Id from sub(jwt sub)} req
  * @param {*username  and favoritewines-array} res
  */
-const showProfile = async (req, res) => {
+const showProfile = async (req: Request | any, res: Response) => {
+	type UserProps = Pick<IUser, 'email'>;
+
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
 		const favoriteWines = await WineModel.find({
-			_id: { $in: profile.favoriteWines }
+			_id: { $in: profile?.favoriteWines }
 		});
-		const { email } = profile;
+		const { email }: any | null = profile;
 		favoriteWines.length !== 0
 			? res.status(StatusCode.OK).send({ email, favoriteWines })
 			: res.status(StatusCode.OK).send({ email, message: 'Empty list' });
@@ -104,11 +195,14 @@ const showProfile = async (req, res) => {
  * @param {*Wine ID} req
  * @param {*Authenticateduser.favoriteWines} res
  */
-const addFavoriteWine = async (req, res) => {
+
+const addFavoriteWine = async (req: Request | any, res: Response) => {
 	try {
+		type WineProps = Pick<IWine, 'name' | '_id' | 'country'>;
+
 		const favoriteWine = await WineModel.findById(req.params.wineId);
 
-		const { name, _id, country, description, grapes, year } = favoriteWine;
+		const { name, _id, country, description, grapes, year }: any | null = favoriteWine;
 
 		const authenticatedUser = await UserModel.findOneAndUpdate(
 			req.jwt.sub,
@@ -127,7 +221,7 @@ const addFavoriteWine = async (req, res) => {
 			{ new: true }
 		);
 
-		res.status(StatusCode.OK).send(authenticatedUser.favoriteWines);
+		res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines);
 	} catch (error) {
 		if (error.message.includes('null')) {
 			res.status(StatusCode.NOTFOUND).send({
@@ -153,7 +247,7 @@ const addFavoriteWine = async (req, res) => {
  * @param {*Wine ID} req
  * @param {*Authenticateduser.favoriteWines} res
  */
-const deleteWineFromUsersList = async (req, res) => {
+const deleteWineFromUsersList = async (req: Request | any, res: Response) => {
 	try {
 		const authenticatedUser = await UserModel.findOneAndUpdate(
 			req.jwt.sub,
@@ -166,8 +260,8 @@ const deleteWineFromUsersList = async (req, res) => {
 			},
 			{ new: true }
 		);
-		authenticatedUser.favoriteWines.length !== 0
-			? res.status(StatusCode.OK).send(authenticatedUser.favoriteWines)
+		authenticatedUser?.favoriteWines?.length !== 0
+			? res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines)
 			: res.status(StatusCode.OK).send(authenticatedUser);
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
@@ -178,7 +272,7 @@ const deleteWineFromUsersList = async (req, res) => {
  * Admin functions
  *
  */
-const getAllUSers = async (req, res) => {
+const getAllUSers: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.find();
 		res.status(StatusCode.OK).send(response);
@@ -189,7 +283,7 @@ const getAllUSers = async (req, res) => {
 	}
 };
 
-const getUserById = async (req, res) => {
+const getUserById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.findById(req.params.userId);
 		res.status(StatusCode.OK).send(response);
@@ -201,7 +295,7 @@ const getUserById = async (req, res) => {
 	}
 };
 
-const getUserByUserNameQuery = async (req, res) => {
+const getUserByUserNameQuery: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.find({
 			username: req.params.username
@@ -214,20 +308,22 @@ const getUserByUserNameQuery = async (req, res) => {
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			error: error.message,
-			message: 'Error occured while trying to retrieve user with username:' + req.params.userName
+			message:
+				'Error occured while trying to retrieve user with username:' + req.params.userName
 		});
 	}
 };
 
-const deleteUserById = async (req, res) => {
+const deleteUserById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.findByIdAndDelete(req.params.userId);
 		res.status(StatusCode.OK).send({
-			message: `Successfully deleted: ${response.username} and ID ${response._id}`
+			message: `Successfully deleted: and ID ${response?._id}`
 		});
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			message: 'Error occured while trying to find and delete user with ID:' + req.params.userId
+			message:
+				'Error occured while trying to find and delete user with ID:' + req.params.userId
 		});
 	}
 };
@@ -239,6 +335,8 @@ export default {
 	handleRegister,
 	handleLogin,
 	logout,
+	handleForgottPassword,
+	handleResetPassword,
 	getAllUSers,
 	getUserById,
 	getUserByUserNameQuery,
