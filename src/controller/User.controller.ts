@@ -1,9 +1,9 @@
-import UserModel, { IUser } from '../model/User.model';
+import UserModel  from '../model/User.model';
 import StatusCode from '../../config/StatusCode';
 import WineModel, { IWine } from '../model/Wine.model';
-import PasswordUtils from '../lib/PasswordUtils';
+import PasswordUtils, {RequestType} from '../lib/PasswordUtils';
 import { IHandlerProps } from '../../server';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
@@ -42,7 +42,6 @@ const handleRegister: IHandlerProps = async (req, res) => {
  */
 const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 	const { email, password } = await req.body;
-	console.log(email, password);
 	if (req.cookies.token) {
 		res.redirect('/');
 	} else {
@@ -174,15 +173,14 @@ const handleResetPassword: IHandlerProps = async (req, res) => {
  * @param {Id from sub(jwt sub)} req
  * @param {*username  and favoritewines-array} res
  */
-const showProfile = async (req: Request | any, res: Response) => {
-	type UserProps = Pick<IUser, 'email'>;
+const showProfile = async (req: RequestType , res: Response) => {
 
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
 		const favoriteWines = await WineModel.find({
 			_id: { $in: profile?.favoriteWines }
 		});
-		const { email }: any | null = profile;
+		const email = profile?.email;
 		favoriteWines.length !== 0
 			? res.status(StatusCode.OK).send({ email, favoriteWines })
 			: res.status(StatusCode.OK).send({ email, message: 'Empty list' });
@@ -196,9 +194,10 @@ const showProfile = async (req: Request | any, res: Response) => {
  * @param {*Authenticateduser.favoriteWines} res
  */
 
-const addFavoriteWine = async (req: Request | any, res: Response) => {
+const addFavoriteWine = async (req: RequestType | any, res: Response) => {
 	try {
 		type WineProps = Pick<IWine, 'name' | '_id' | 'country'>;
+		
 
 		const favoriteWine = await WineModel.findById(req.params.wineId);
 
@@ -247,7 +246,7 @@ const addFavoriteWine = async (req: Request | any, res: Response) => {
  * @param {*Wine ID} req
  * @param {*Authenticateduser.favoriteWines} res
  */
-const deleteWineFromUsersList = async (req: Request | any, res: Response) => {
+const deleteWineFromUsersList = async (req: RequestType | any, res: Response) => {
 	try {
 		const authenticatedUser = await UserModel.findOneAndUpdate(
 			req.jwt.sub,

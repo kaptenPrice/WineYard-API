@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import { NextFunction } from 'express';
-import { ElementAccessExpression } from 'typescript';
-import {IHandlerProps} from "../../server"
+
 
 dotenv.config();
 

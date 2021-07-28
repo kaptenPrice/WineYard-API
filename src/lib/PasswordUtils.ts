@@ -3,7 +3,7 @@ import jsonWebToken, { Secret } from 'jsonwebtoken';
 import StatusCode from '../../config/StatusCode';
 import dotenv from 'dotenv';
 import { IUser } from '../model/User.model';
-import { Response, Request, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 dotenv.config();
 
 const PRIV_KEY: Secret = process.env.PRIVATE_KEY as Secret;
@@ -50,7 +50,7 @@ const generateJwt = async (user: IUser, res: Response) => {
 		expiresIn: expiresIn,
 		algorithm: 'RS256'
 	});
-	await res.cookie('token', signedToken, {
+	res.cookie('token', signedToken, {
 		expires: new Date(Date.now() + expiration)
 		//secure: false, //TODO Set to true in production
 		//httpOnly: true
@@ -68,7 +68,7 @@ const generateJwt = async (user: IUser, res: Response) => {
 /**
  * @param {*} req pick the token from header
  */
-const authVerifyByToken = async (req: Request | any, res: Response, next: NextFunction) => {
+const authVerifyByToken = async (req: RequestType | any, res: Response, next: NextFunction) => {
 	const tokenParts = await req.headers.authorization?.split(' ');
 	if (tokenParts && tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
 		try {
@@ -95,8 +95,8 @@ const authVerifyByToken = async (req: Request | any, res: Response, next: NextFu
  * @param {*} res
  * @param {*} next
  */
-const authVerifyByCookie = async (req: Request | any, res: Response, next: NextFunction) => {
-	let token = req.cookies.token;
+const authVerifyByCookie = async (req: RequestType, res: Response, next: NextFunction) => {
+	let token = req.cookies?.token;
 
 	if (token?.match(/\S+\.\S+\.\S+/) !== null) {
 		try {
@@ -123,3 +123,9 @@ export default {
 	authVerifyByToken,
 	authVerifyByCookie
 };
+
+export interface RequestType extends Express.Request {
+	jwt: string | jsonWebToken.JwtPayload;
+	cookies?: { [key: string]: any };
+	
+}
