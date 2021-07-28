@@ -7,6 +7,7 @@ const availableRoutes = [
 	'/register ',
 	'/login ',
 	'/profile ',
+	"/user/forgotpassword",
 	'/logout ',
 	'/wine/add ',
 	'/wine/update ',
