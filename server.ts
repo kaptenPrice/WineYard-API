@@ -1,19 +1,18 @@
-import express, {  Application, Request, Response } from 'express';
+import express, { Application, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import middleWares from './src/middleware/MiddleWares';
 import DBConfiguration from './config/DBConfiguration';
-import UserRoutes from './src/routes/User.routes';
-import WineRoutes from './src/routes/Wine.routes';
+import staticRouter from 'express-static-router';
+import { RequestType } from './src/lib/PasswordUtils';
+/* import middleWares from './src/middleware/MiddleWares';
+ */
+export type IHandlerProps = (req: RequestType, res: Response) => Promise<any | undefined> | void;
 
-
-export type IHandlerProps = (req: Request, res: Response) => Promise<any | undefined>;
-
-const app:Application = express();
+const app: Application = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
@@ -31,10 +30,12 @@ app.use(
 DBConfiguration.connectToDB();
 DBConfiguration.connectToPort(app);
 
-UserRoutes.userRoutes(app);
-WineRoutes.wineRoutes(app);
+//TODO: Move comments to the new router folder files
+//TODO: Delete routes & controller folder.
+//TODO: Rename router to controller.
+staticRouter('./src/router', app /* , { printDetectedRoutes: false } */);
 
-app.use(middleWares.notFound);
-app.use(middleWares.errorHandler);
+/* app.use(middleWares.notFound);
+app.use(middleWares.errorHandler); */
 
 export default app;

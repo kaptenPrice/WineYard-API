@@ -127,5 +127,6 @@ export default {
 export interface RequestType extends Express.Request {
 	jwt: string | jsonWebToken.JwtPayload;
 	cookies?: { [key: string]: any };
-	
+	body?: any;
+	params?: any;
 }
