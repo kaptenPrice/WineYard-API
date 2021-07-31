@@ -1,10 +1,11 @@
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
+import {Application} from "express"
 
 dotenv.config()
 
 const port = process.env.PORT
-const DB_URL = process.env.DB_URL
+const DB_URL : string = (process.env.DB_URL as string)
 
 const connectToDB = async () => {
 	try {
@@ -22,7 +23,7 @@ const connectToDB = async () => {
 }
 
 
-const connectToPort = (app) => {
+const connectToPort = (app: Application) => {
 	app.listen(port, () => {
 		console.log(`__ THE LONELY SERVER IS UP AND RUNNING ON __ ${port}`)
 	})

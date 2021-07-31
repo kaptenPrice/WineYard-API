@@ -52,6 +52,9 @@
         border-radius: 5px;
         padding: 5px 60px;
       }
+      .link{
+        color: #fafdff;
+      }
     </style>
     <title>WineApi</title>
   </head>
@@ -61,8 +64,8 @@
       <form method="POST" action="/register">
         <div>
           <label>
-            <p>Enter Username:</p>
-            <input type="text" name="username" />
+            <p>Enter Email:</p>
+            <input type="email" name="email" />
           </label>
           <label>
             <p>Enter Password:</p>
@@ -71,6 +74,8 @@
         </div>
         <input class="submit" type="submit" value="Register" />
       </form>
+      <a class="link" href="/login">Login</a>
+
     </div>
   </body>
 </html>

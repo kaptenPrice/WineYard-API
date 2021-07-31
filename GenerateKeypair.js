@@ -3,8 +3,6 @@ import path from 'path';
 import crypto from 'crypto';
 const __dirname = path.resolve();
 
-
-
 const genKeyPair = () => {
 	// Generates an object where the keys are stored in properties `privateKey` and `publicKey`
 	const keyPair = crypto.generateKeyPairSync('rsa', {
@@ -18,14 +16,11 @@ const genKeyPair = () => {
 			format: 'pem' // Most common formatting choice
 		}
 	});
-
 	// Create the public key file
 	fs.writeFileSync(__dirname + '/id_rsa_pub.pem', keyPair.publicKey);
 
 	// Create the private key file
 	fs.writeFileSync(__dirname + '/id_rsa_priv.pem', keyPair.privateKey);
 };
-
 // Generate the files
 genKeyPair();
-
