@@ -8,8 +8,8 @@ import cookieParser from 'cookie-parser';
 import DBConfiguration from './config/DBConfiguration';
 import staticRouter from 'express-static-router';
 import { RequestType } from './src/lib/PasswordUtils';
-/* import middleWares from './src/middleware/MiddleWares';
- */
+import middleWares from './src/middleware/MiddleWares';
+
 export type IHandlerProps = (req: RequestType, res: Response) => Promise<any | undefined> | void;
 
 const app: Application = express();
@@ -30,12 +30,12 @@ app.use(
 DBConfiguration.connectToDB();
 DBConfiguration.connectToPort(app);
 
-//TODO: Move comments to the new router folder files
-//TODO: Delete routes & controller folder.
-//TODO: Rename router to controller.
-staticRouter('./src/router', app /* , { printDetectedRoutes: false } */);
-
-/* app.use(middleWares.notFound);
-app.use(middleWares.errorHandler); */
+staticRouter('./src/controller', app, {
+	/* printDetectedRoutes: false, */
+	onLoad: () => {
+		app.use(middleWares.notFound);
+		app.use(middleWares.errorHandler);
+	}
+});
 
 export default app;

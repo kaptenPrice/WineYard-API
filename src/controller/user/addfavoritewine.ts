@@ -4,6 +4,12 @@ import PasswordUtils, { RequestType } from '../../lib/PasswordUtils';
 import UserModel from '../../model/User.model';
 import WineModel, { IWine } from '../../model/Wine.model';
 
+/**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
+/**
+ *User functions
+ * @param {*Wine ID} req
+ * @param {*Authenticateduser.favoriteWines} res
+ */
 const patch = async (req: RequestType | any, res: Response) => {
 	try {
 		//TODO:check this

@@ -3,6 +3,7 @@ import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import WineModel from '../../model/Wine.model';
 
+/** DELETE requires wineId, removes this.wine from collection.wines*/
 const deleteWineById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await WineModel.findByIdAndDelete(req.params.wineId);
@@ -12,7 +13,7 @@ const deleteWineById: IHandlerProps = async (req, res) => {
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			message:
-				'Error occured while trying to find and delete wine with ID:' + req.params.wineId,
+				'Error occurred while trying to find and delete wine with ID:' + req.params.wineId,
 			error: error.message
 		});
 	}

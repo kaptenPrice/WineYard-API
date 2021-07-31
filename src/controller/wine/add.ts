@@ -1,10 +1,9 @@
-/** POST requires input from body : name, country, description, grapes, year */
-
 import StatusCode from '../../../config/StatusCode';
 import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import WineModel from '../../model/Wine.model';
 
+/** POST requires input from body : name, country, description, grapes, year */
 const addWine: IHandlerProps = async (req, res) => {
 	const { name, country, description, grapes, year } = req.body;
 	try {

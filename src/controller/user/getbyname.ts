@@ -3,12 +3,12 @@ import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import UserModel from '../../model/User.model';
 
-//TODO:check this
 const getUserByUserNameQuery: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.find({
 			username: req.params.username
 		});
+		//TODO:check this
 		response.length !== 0
 			? res.status(StatusCode.OK).send(response)
 			: res.status(StatusCode.NOTFOUND).send({
