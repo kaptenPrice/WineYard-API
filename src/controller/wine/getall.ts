@@ -3,6 +3,7 @@ import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import WineModel from '../../model/Wine.model';
 
+/** GET get all wines in Winelist-API -> Collection Wines  */
 const getAllWines: IHandlerProps = async (req, res) => {
 	try {
 		const response = await WineModel.find();

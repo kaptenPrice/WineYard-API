@@ -1,9 +1,10 @@
+import { HandlerType } from 'express-static-router';
 import path from 'path';
 import StatusCode from '../../config/StatusCode';
 import PasswordUtils from '../lib/PasswordUtils';
 import UserModel from '../model/User.model';
 
-export const get = (req, res) => {
+export const get: HandlerType = (req, res) => {
 	if (!req.cookies.token) {
 		res.sendFile(path.join(__dirname, '../../login.html'));
 	} else {
@@ -11,7 +12,13 @@ export const get = (req, res) => {
 	}
 };
 
-export const post = async (req, res) => {
+/**
+ * Handle login
+ * @param {*password, email} req
+ * @param {*redirect("/login")} res
+ * @param {*null} next
+ */
+export const post: HandlerType = async (req, res) => {
 	const { email, password } = await req.body;
 	if (req.cookies.token) {
 		res.redirect('/');
@@ -21,7 +28,7 @@ export const post = async (req, res) => {
 				const user = await UserModel.findOne({ email });
 				if (!user) {
 					res.status(StatusCode.UNAUTHORIZED).send({
-						message: `Couldnt find user ${email},  go to /register`
+						message: `Couldn't find user ${email},  go to /register`
 					});
 					return;
 				}

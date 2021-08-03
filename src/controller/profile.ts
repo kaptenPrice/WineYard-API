@@ -1,10 +1,16 @@
-import { Response } from 'express';
 import StatusCode from '../../config/StatusCode';
-import PasswordUtils, { RequestType } from '../lib/PasswordUtils';
+import { IHandlerProps } from '../../server';
+import PasswordUtils from '../lib/PasswordUtils';
 import UserModel from '../model/User.model';
 import WineModel from '../model/Wine.model';
 
-const get = async (req: RequestType, res: Response) => {
+//TODO:check this
+/**
+ *
+ * @param {Id from sub(jwt sub)} req
+ * @param {*username and favoritewines-array} res
+ */
+const get: IHandlerProps = async (req, res) => {
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
 		const favoriteWines = await WineModel.find({

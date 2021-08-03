@@ -3,6 +3,7 @@ import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import WineModel from '../../model/Wine.model';
 
+/**GET requires wineId in params, shows wine from collection.wine */
 const getWineById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await WineModel.findById(req.params.wineId);

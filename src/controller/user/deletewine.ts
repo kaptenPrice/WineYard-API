@@ -3,6 +3,11 @@ import StatusCode from '../../../config/StatusCode';
 import PasswordUtils, { RequestType } from '../../lib/PasswordUtils';
 import UserModel from '../../model/User.model';
 
+/**PUT requires wineId, removes this.wine from this.user favoritwines */
+/**
+ * @param {*Wine ID} req
+ * @param {*Authenticateduser.favoriteWines} res
+ */
 const put = async (req: RequestType | any, res: Response) => {
 	try {
 		const authenticatedUser = await UserModel.findOneAndUpdate(

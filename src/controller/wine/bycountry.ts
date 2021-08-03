@@ -3,6 +3,7 @@ import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import WineModel from '../../model/Wine.model';
 
+/**GET requires country in params, shows wine from collection.wine */
 const getWineByCountry: IHandlerProps = async (req, res) => {
 	const { country } = req.params;
 	try {

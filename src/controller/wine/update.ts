@@ -4,6 +4,7 @@ import PasswordUtils from '../../lib/PasswordUtils';
 import { objectFilter } from '../../middleware/MiddleWares';
 import WineModel from '../../model/Wine.model';
 
+/** PATCH requires wineId, updates parameters in this.wine */
 const updateWine: IHandlerProps = async (req, res) => {
 	let { name, country, description, grapes, year } = req.body;
 	try {

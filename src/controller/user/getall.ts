@@ -3,11 +3,7 @@ import { IHandlerProps } from '../../../server';
 import PasswordUtils from '../../lib/PasswordUtils';
 import UserModel from '../../model/User.model';
 
-/*
- *
- * Admin functions
- *
- */
+
 const get: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.find();
