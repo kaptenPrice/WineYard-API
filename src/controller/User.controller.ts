@@ -1,7 +1,7 @@
-import UserModel  from '../model/User.model';
+import UserModel from '../model/User.model';
 import StatusCode from '../../config/StatusCode';
 import WineModel, { IWine } from '../model/Wine.model';
-import PasswordUtils, {RequestType} from '../lib/PasswordUtils';
+import PasswordUtils, { RequestType } from '../lib/PasswordUtils';
 import { IHandlerProps } from '../../server';
 import { NextFunction, Response } from 'express';
 import crypto from 'crypto';
@@ -31,7 +31,7 @@ const handleRegister: IHandlerProps = async (req, res) => {
 			});
 	} catch (err) {
 		console.log(err.message);
-		res.json({ success: false, msg: err });
+		res.status(StatusCode.BAD_REQUEST).json({ success: false, msg: err });
 	}
 };
 /**
@@ -57,8 +57,7 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 				const isValid = PasswordUtils.passwordValidator(password, user.hash, user.salt);
 				if (isValid) {
 					PasswordUtils.generateJwt(user, res);
-					res.status(StatusCode.OK);
-					next();
+					res.send({ success: true, message: 'welcome', Goto: '/profile' });
 				} else {
 					res.status(StatusCode.UNAUTHORIZED).send({
 						message: 'You entered wrong password'
@@ -170,11 +169,10 @@ const handleResetPassword: IHandlerProps = async (req, res) => {
 
 /**
  *
- * @param {Id from sub(jwt sub)} req
- * @param {*username  and favoritewines-array} res
+ * @param req Id from sub(jwt sub)
+ * @param res username and favoritewines-array
  */
-const showProfile = async (req: RequestType , res: Response) => {
-
+const showProfile = async (req: RequestType, res: Response) => {
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
 		const favoriteWines = await WineModel.find({
@@ -185,7 +183,8 @@ const showProfile = async (req: RequestType , res: Response) => {
 			? res.status(StatusCode.OK).send({ email, favoriteWines })
 			: res.status(StatusCode.OK).send({ email, message: 'Empty list' });
 	} catch (error) {
-		res.status(StatusCode.NOTFOUND).send({ error: error.message });
+		console.log('Profiel err: ', error.message);
+		res.status(StatusCode.UNAUTHORIZED).send({ error: error.message });
 	}
 };
 /**
@@ -197,7 +196,6 @@ const showProfile = async (req: RequestType , res: Response) => {
 const addFavoriteWine = async (req: RequestType | any, res: Response) => {
 	try {
 		type WineProps = Pick<IWine, 'name' | '_id' | 'country'>;
-		
 
 		const favoriteWine = await WineModel.findById(req.params.wineId);
 

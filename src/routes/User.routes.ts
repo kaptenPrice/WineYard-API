@@ -4,22 +4,22 @@ import passwordUtils from '../lib/PasswordUtils';
 import { Request, Response } from 'express';
 
 const availableRoutes = [
-	'/register ',
-	'/login ',
-	'/profile ',
-	"/user/forgotpassword",
-	'/logout ',
-	'/wine/add ',
-	'/wine/update ',
+	'/register',
+	'/login',
+	'/profile',
+	'/logout',
+	'/wine/add',
+	'/wine/update',
 	'/wine/getall',
-	'/wine/getbyid ',
-	'/wine/getbyname ',
-	'/wine/bycountry ',
-	'/wine/delete ',
-	'/user/addfavoritewine ',
-	'/user/deletewine ',
+	'/wine/getbyid',
+	'/wine/getbyname',
+	'/wine/bycountry',
+	'/wine/delete',
+	'/user/addfavoritewine',
+	'/user/deletewine',
+	'/user/forgotpassword',
 	'/user/getall',
-	'/user/getbyid '
+	'/user/getbyid'
 ];
 const userRoutes = (app: any) => {
 	//sending layout to login and register
@@ -46,9 +46,7 @@ const userRoutes = (app: any) => {
 		});
 	});
 	app.post('/register', UserCtrl.handleRegister);
-	app.post('/login', UserCtrl.handleLogin, (req: Request, res: Response) => {
-		res.send({ success: true, message: 'welcome', Goto: '/profile' });
-	});
+	app.post('/login', UserCtrl.handleLogin);
 	/** GET show this.user profile */
 	app.get('/profile', passwordUtils.authVerifyByCookie, UserCtrl.showProfile);
 
@@ -68,7 +66,7 @@ const userRoutes = (app: any) => {
 		passwordUtils.authVerifyByCookie,
 		UserCtrl.deleteWineFromUsersList
 	);
-		//ADMIN ROUTS - USER
+	//ADMIN ROUTS - USER
 	app.get('/user/getall', passwordUtils.authVerifyByCookie, UserCtrl.getAllUSers);
 	app.get('/user/getbyid/:userId', passwordUtils.authVerifyByCookie, UserCtrl.getUserById);
 	app.get(

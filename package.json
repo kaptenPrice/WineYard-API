@@ -8,7 +8,7 @@
 		"test": "mocha 'tests/**'",
 		"start": "node server.ts",
 		"dev": "tsnd --respawn server.ts",
-		"serve": "nodemon server.ts",
+		"serve": "tsnd --respawn server.ts",
 		"lint": "eslint ./*.ts --fix"
 	},
 	"keywords": [
