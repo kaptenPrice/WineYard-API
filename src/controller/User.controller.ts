@@ -19,19 +19,26 @@ dotenv.config();
  */
 const handleRegister: IHandlerProps = async (req, res) => {
 	const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
-	try {
-		await new UserModel({
-			email: req.body.email,
-			hash,
-			salt
-		})
-			.save()
-			.then((user) => {
-				res.status(StatusCode.OK).send({ message: 'Go to /login' });
-			});
-	} catch (err) {
-		console.log(err.message);
-		res.status(StatusCode.BAD_REQUEST).json({ success: false, msg: err });
+	const checkEmail = Boolean(
+		req.body.email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)
+	);
+	if (checkEmail) {
+		try {
+			await new UserModel({
+				email: req.body.email,
+				hash,
+				salt
+			})
+				.save()
+				.then((user) => {
+					res.status(StatusCode.OK).send({ message: 'SUCCESS, Login please ' });
+				});
+		} catch (err) {
+			console.log(err.message);
+			res.status(StatusCode.BAD_REQUEST).json({ success: false, msg: err });
+		}
+	} else {
+		res.status(StatusCode.BAD_REQUEST).json({ message: 'Check your Email adress ' });
 	}
 };
 /**
