@@ -1,4 +1,4 @@
-import express, {  Application, Request, Response } from 'express';
+import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import fs from 'fs';
@@ -10,10 +10,9 @@ import DBConfiguration from './config/DBConfiguration';
 import UserRoutes from './src/routes/User.routes';
 import WineRoutes from './src/routes/Wine.routes';
 
-
 export type IHandlerProps = (req: Request, res: Response) => Promise<any | undefined>;
 
-const app:Application = express();
+const app: Application = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));

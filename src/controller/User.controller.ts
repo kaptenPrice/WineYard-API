@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { errorParser } from '../lib/helper';
 
 dotenv.config();
 
@@ -18,27 +19,30 @@ dotenv.config();
  * @param {*null} next
  */
 const handleRegister: IHandlerProps = async (req, res) => {
-	const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
-	const checkEmail = Boolean(
-		req.body.email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)
-	);
-	if (checkEmail) {
+	const { email, password } = await req.body;
+
+	if (email && password) {
+		const { salt, hash } = PasswordUtils.passwordGenerator(password);
 		try {
 			await new UserModel({
-				email: req.body.email,
+				email,
 				hash,
 				salt
 			})
 				.save()
 				.then((user) => {
-					res.status(StatusCode.OK).send({ message: 'SUCCESS, Login please ' });
+					res.status(StatusCode.OK).send({ message: 'Register success, Login please ' });
 				});
 		} catch (err) {
 			console.log(err.message);
-			res.status(StatusCode.BAD_REQUEST).json({ success: false, msg: err });
+			res.status(StatusCode.BAD_REQUEST).json({
+				message: err?.errors ? errorParser(err.errors)?.email : err.message
+			});
 		}
 	} else {
-		res.status(StatusCode.BAD_REQUEST).json({ message: 'Check your Email adress ' });
+		!password
+			? res.status(StatusCode.FORBIDDEN).json({ message: 'Password is required' })
+			: res.status(StatusCode.FORBIDDEN).json({ message: 'Email is required' });
 	}
 };
 /**
@@ -52,12 +56,17 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 	if (req.cookies.token) {
 		res.redirect('/');
 	} else {
-		if (email && password) {
+		if (!email || !password) {
+			res.status(StatusCode.UNAUTHORIZED).send({
+				message: 'Username and password is required'
+			});
+			return;
+		} else {
 			try {
 				const user = await UserModel.findOne({ email });
 				if (!user) {
 					res.status(StatusCode.UNAUTHORIZED).send({
-						message: `Couldnt find user ${email},  go to /register`
+						message: `Check your credentials`
 					});
 					return;
 				}
@@ -67,7 +76,7 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 					res.send({ success: true, message: 'welcome', Goto: '/profile' });
 				} else {
 					res.status(StatusCode.UNAUTHORIZED).send({
-						message: 'You entered wrong password'
+						message: 'Check your credentials'
 					});
 				}
 			} catch (error) {
@@ -76,8 +85,6 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 					error: error.message
 				});
 			}
-		} else {
-			res.send({ message: 'Username and password is required, go to /login' });
 		}
 	}
 };
@@ -86,31 +93,34 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
  * @param {*} req
  * @param {*redirect("/login")} res
  */
-const logout: IHandlerProps = async (req, res) => {
+const logout = (req: any, res: Response) => {
 	try {
-		await res.clearCookie('token');
-		res.redirect('/login');
+		res.clearCookie('token');
+		res.send({ message: 'Successfully logged out. Redirecting to home page' });
 	} catch (error) {
 		res.send({ error: error.message, message: ' Couldnt log out user' });
 	}
 };
 
 const handleForgottPassword: IHandlerProps = async (req, res) => {
-	if (req.body.email === '') {
-		res.status(StatusCode.BAD_REQUEST).send('email required');
+	const { email } = req.body;
+	if (email === '') {
+		res.status(StatusCode.BAD_REQUEST).send({ message: 'Email is required' });
+		return;
 	} else {
 		try {
 			const randomByte = crypto.randomBytes(12).toString('hex');
-			const tempToken = mongoose.Types.ObjectId(randomByte);
+			const temporaryToken = mongoose.Types.ObjectId(randomByte);
 			const expiresIn = 3600000;
 			const currentUser = await UserModel.findOneAndUpdate(
-				req.body.email,
+				{ email },
 				{
-					resetPasswordToken: tempToken,
+					resetPasswordToken: temporaryToken,
 					resetPasswordExpires: Date.now() + expiresIn
 				},
 				{ new: true }
 			);
+			console.log('CurrentUSer: ', currentUser);
 
 			const transporter = nodemailer.createTransport({
 				service: 'gmail',
@@ -126,36 +136,48 @@ const handleForgottPassword: IHandlerProps = async (req, res) => {
 				text:
 					'Password reset email\n\n' +
 					'Click here:\n\n' +
-					`http://localhost:3001/user/reset/${tempToken}\n\n`
+					`http://localhost:3000/resetpassword/${temporaryToken}`
 			};
-			console.log('sending Email');
 			transporter.sendMail(mailOptions, (err, response) => {
 				if (err) {
 					console.log('there was an error ', err.message);
-					return res.status(StatusCode.BAD_REQUEST).send(err.message);
+					return res.status(StatusCode.BAD_REQUEST).send({ message: err.message });
 				} else {
-					console.log('Here is res: ', response);
-					res.status(StatusCode.OK).json(`recovery mail sent to ${currentUser?.email}`);
+					res.status(StatusCode.OK).json({
+						message: `Please check your mailbox`,
+						response
+					});
 				}
 			});
 		} catch (error) {
-			res.status(StatusCode.BAD_REQUEST).send({ message: `${req.body.email} dosnt exist` });
+			res.status(StatusCode.BAD_REQUEST).send({
+				message: `Email is not registered`,
+				error: error.message
+			});
 			console.log(error.message);
 		}
 	}
 };
 const handleResetPassword: IHandlerProps = async (req, res) => {
-	const resetPasswordToken = req.params.resetPasswordToken;
+	const resetPasswordToken = req.params.temporaryToken;
 	const user = await UserModel.findOne({
 		resetPasswordToken,
 		resetPasswordExpires: {
 			$gt: Date.now()
 		}
 	});
+
 	if (user === null) {
 		console.log('Password reset link is invalid or out of date');
-		res.status(StatusCode.BAD_REQUEST).json('Password reset link is invalid or to old');
+		res.status(StatusCode.BAD_REQUEST).send({
+			message: 'Password reset link is invalid or to old'
+		});
+		return;
 	} else {
+		if (!req.body.password) {
+			res.status(200).end();
+			return;
+		}
 		try {
 			const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
 			await user.updateOne(
@@ -167,9 +189,9 @@ const handleResetPassword: IHandlerProps = async (req, res) => {
 				},
 				{ new: true }
 			);
-			res.send({ success: true, message: 'Go to /login' });
+			res.send({ message: 'Log in with your new password' });
 		} catch (error) {
-			console.log(error.message);
+			res.status(StatusCode.BAD_REQUEST).send({ message: error.message });
 		}
 	}
 };
@@ -186,9 +208,7 @@ const showProfile = async (req: RequestType, res: Response) => {
 			_id: { $in: profile?.favoriteWines }
 		});
 		const email = profile?.email;
-		favoriteWines.length !== 0
-			? res.status(StatusCode.OK).send({ email, favoriteWines })
-			: res.status(StatusCode.OK).send({ email, message: 'Empty list' });
+		res.status(StatusCode.OK).send({ profile: { email, favoriteWines } });
 	} catch (error) {
 		console.log('Profiel err: ', error.message);
 		res.status(StatusCode.UNAUTHORIZED).send({ error: error.message });

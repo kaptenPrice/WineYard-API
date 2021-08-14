@@ -79,7 +79,7 @@ const authVerifyByToken = async (req: RequestType | any, res: Response, next: Ne
 			next();
 		} catch (error) {
 			res.status(StatusCode.UNAUTHORIZED).send({
-				message: 'You lack authority to access this endpoint,  log in please',
+				message: 'You lack authority to access this endpoint, log in please',
 				error: error.message
 			});
 		}
@@ -105,7 +105,7 @@ const authVerifyByCookie = async (req: RequestType, res: Response, next: NextFun
 			next();
 		} catch (error) {
 			res.status(StatusCode.UNAUTHORIZED).send({
-				message: 'Sesssion has expired ,log in again please /login',
+				message: 'Invalid auth, log in again',
 				error: error.message
 			});
 		}
@@ -127,5 +127,4 @@ export default {
 export interface RequestType extends Express.Request {
 	jwt: string | jsonWebToken.JwtPayload;
 	cookies?: { [key: string]: any };
-	
 }

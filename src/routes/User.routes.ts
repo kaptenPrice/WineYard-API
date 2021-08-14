@@ -52,8 +52,10 @@ const userRoutes = (app: any) => {
 
 	app.get('/logout', UserCtrl.logout);
 
-	app.get('/user/forgotpassword', UserCtrl.handleForgottPassword);
-	app.get('/user/reset/:resetPasswordToken', UserCtrl.handleResetPassword);
+	app.post('/user/forgotpassword', UserCtrl.handleForgottPassword);
+
+	app.post('/user/resetPassword/:temporaryToken', UserCtrl.handleResetPassword);
+
 	/**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
 	app.patch(
 		'/user/addfavoritewine/:wineId',

@@ -3,12 +3,11 @@
 	"version": "1.0.0",
 	"description": "REST-API",
 	"main": "server.ts",
-	"type": "module",
 	"scripts": {
 		"test": "mocha 'tests/**'",
-		"start": "node server.ts",
+		"start": "nodemon --watch './**/*.ts' --exec ts-node server.ts",
 		"dev": "tsnd --respawn server.ts",
-		"serve": "tsnd --respawn server.ts",
+		"server": "concurrently \"npm run server\" \"cd ../frontend && npm start\"",
 		"lint": "eslint ./*.ts --fix"
 	},
 	"keywords": [
@@ -33,7 +32,6 @@
 		"morgan": "^1.10.0",
 		"nodemailer": "^6.6.3",
 		"ts-node": "^10.1.0",
-		"ts-node-dev": "^1.1.8",
 		"typescript": "^3.9.10"
 	},
 	"devDependencies": {

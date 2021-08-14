@@ -1,12 +1,19 @@
 import { BinaryLike } from 'crypto';
-import mongoose from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 import { WineSchema, IWine } from './Wine.model';
 
-const UserSchema = new mongoose.Schema(
+const UserSchema = new Schema(
 	{
 		hash: String,
 		salt: String,
-		email: String,
+		email: {
+			type: String,
+			match: [
+				/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+				'Please fill a valid email address'
+			]
+		},
+	
 		favoriteWines: [WineSchema],
 		admin: Boolean,
 		resetPasswordToken: String,
@@ -17,15 +24,15 @@ const UserSchema = new mongoose.Schema(
 	}
 );
 
-const UserModel = mongoose.model<IUser>('user', UserSchema);
+const UserModel = model<IUser>('user', UserSchema);
 
 export default UserModel;
-export interface IUser extends mongoose.Document {
+export interface IUser extends Document {
 	hash: BinaryLike;
 	salt: BinaryLike;
 	email: string | null;
-	favoriteWines: Array<IWine> | Array<null> ;
+	favoriteWines: Array<IWine> | Array<null>;
 	admin: Boolean | null;
-	resetPasswordToken?: mongoose.Types.ObjectId | null;
+	resetPasswordToken?: Types.ObjectId | null;
 	resetPasswordExpires?: number | null;
 }
