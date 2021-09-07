@@ -89,7 +89,7 @@ const getWineByNameOrCountry: IHandlerProps = async (req, res) => {
 			? res.status(StatusCode.FOUND).send(response)
 			: res.status(StatusCode.NOTFOUND).send({
 					message: `Couldnt find wine ${value}`
-			  });
+			});
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			error: error.message,
