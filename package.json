@@ -5,8 +5,8 @@
 	"main": "server.ts",
 	"scripts": {
 		"test": "mocha 'tests/**'",
-		"start": "nodemon --watch './**/*.ts' --exec ts-node server.ts",
-		"dev": "tsnd --respawn server.ts",
+		"start": "nodemon --watch '*.ts' --exec ts-node server.ts",
+		"dev": "ts-node-dev --respawn --notify false --prefer-ts --ignore-watch node_modules -- server.ts ",
 		"server": "concurrently \"npm run server\" \"cd ../frontend && npm start\"",
 		"lint": "eslint ./*.ts --fix"
 	},
@@ -26,6 +26,9 @@
 		"dotenv": "^10.0.0",
 		"express": "^4.17.1",
 		"helmet": "^4.6.0",
+		"i18next": "^20.4.0",
+		"i18next-fs-backend": "^1.1.1",
+		"i18next-http-middleware": "^3.1.4",
 		"jsonwebtoken": "^8.5.1",
 		"method-override": "^3.0.0",
 		"mongoose": "^5.12.7",
@@ -38,6 +41,7 @@
 		"@types/cookie-parser": "^1.4.2",
 		"@types/cors": "^2.8.12",
 		"@types/express": "^4.17.13",
+		"@types/i18next-fs-backend": "^1.0.1",
 		"@types/jsonwebtoken": "^8.5.4",
 		"@types/morgan": "^1.9.3",
 		"@types/node": "^16.4.3",
@@ -50,6 +54,7 @@
 		"mocha": "^8.3.2",
 		"nodemon": "^2.0.7",
 		"prettier": "2.3.2",
-		"prettier-eslint": "^12.0.0"
+		"prettier-eslint": "^12.0.0",
+		"ts-node-dev": "^1.1.8"
 	}
 }

@@ -35,7 +35,35 @@ const getAllWines: IHandlerProps = async (req, res) => {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}
 };
+/**
+ *
+ * @param req page and size
+ * @param res repsonse from db
+ */
+const getWinesPaginated: IHandlerProps = async (req, res) => {
+	let { page, size } = req.body;
+	try {
+		if (typeof page !== 'number' || page <= 0) {
+			page = 1;
+		}
 
+		if (!size) {
+			size = 10;
+		}
+		const limit = parseInt(size);
+		const skip = (page - 1) * size;
+		const amountWines = await WineModel.count();
+		const response = await WineModel.find().limit(limit).skip(skip);
+		res.send({
+			data: response,
+			page,
+			size,
+			amountWines
+		});
+	} catch (error) {
+		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
+	}
+};
 const getWineById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await WineModel.findById(req.params.wineId);
@@ -47,37 +75,25 @@ const getWineById: IHandlerProps = async (req, res) => {
 		});
 	}
 };
-
-const getWineByName: IHandlerProps = async (req, res) => {
-	const { name } = req.params;
-	try {
-		const response = await WineModel.find({ name: name.toUpperCase() });
-		response.length !== 0
-			? res.status(StatusCode.FOUND).send(response)
-			: res.status(StatusCode.NOTFOUND).send({
-					message: `Couldnt find wine ${name}`
-			  });
-	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			error: error.message,
-			message: `Error occured while trying to retrieve ${name}`
-		});
-	}
+type keyType = {
+	key: string;
 };
+const getWineByNameOrCountry: IHandlerProps = async (req, res) => {
+	const property = /* req.body.name ? 'name' : 'country'; */ Object.keys(req.body)[0];
+	const value = req.body[property];
+	const searchParams = { [property]: property === 'country' ? value.toUpperCase() : value };
 
-const getWineByCountry: IHandlerProps = async (req, res) => {
-	const { country } = req.params;
 	try {
-		const response = await WineModel.find({ country });
+		const response = await WineModel.find(searchParams);
 		response.length !== 0
 			? res.status(StatusCode.FOUND).send(response)
 			: res.status(StatusCode.NOTFOUND).send({
-					message: `Couldnt find any wines from  ${country}`
+					message: `Couldnt find wine ${value}`
 			  });
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			error: error.message,
-			message: `Error occured while trying to retrieve ${country}`
+			message: `Error occured while trying to retrieve ${value}`
 		});
 	}
 };
@@ -138,9 +154,9 @@ const deleteWineById: IHandlerProps = async (req, res) => {
 export default {
 	getWineById,
 	getAllWines,
+	getWinesPaginated,
 	addWine,
 	updateWine,
-	getWineByName,
-	getWineByCountry,
+	getWineByNameOrCountry,
 	deleteWineById
 };

@@ -46,6 +46,7 @@ const userRoutes = (app: any) => {
 		});
 	});
 	app.post('/register', UserCtrl.handleRegister);
+	
 	app.post('/login', UserCtrl.handleLogin);
 	/** GET show this.user profile */
 	app.get('/profile', passwordUtils.authVerifyByCookie, UserCtrl.showProfile);
@@ -58,7 +59,7 @@ const userRoutes = (app: any) => {
 
 	/**PATCH requires wineId,  Adds this.wine to this.user favoritwines */
 	app.patch(
-		'/user/addfavoritewine/:wineId',
+		'/user/addfavoritewine',
 		passwordUtils.authVerifyByCookie,
 		UserCtrl.addFavoriteWine
 	);
