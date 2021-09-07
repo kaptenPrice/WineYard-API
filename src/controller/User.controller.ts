@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+
 import { errorParser } from '../lib/helper';
 
 dotenv.config();
@@ -31,7 +32,7 @@ const handleRegister: IHandlerProps = async (req, res) => {
 			})
 				.save()
 				.then((user) => {
-					res.status(StatusCode.OK).send({ message: 'Register success, Login please ' });
+					res.status(StatusCode.OK).send({ message: req.t('user_register_success') });
 				});
 		} catch (err) {
 			console.log(err.message);
@@ -41,8 +42,8 @@ const handleRegister: IHandlerProps = async (req, res) => {
 		}
 	} else {
 		!password
-			? res.status(StatusCode.FORBIDDEN).json({ message: 'Password is required' })
-			: res.status(StatusCode.FORBIDDEN).json({ message: 'Email is required' });
+			? res.status(StatusCode.FORBIDDEN).json({ message: req.t('user_password_error') })
+			: res.status(StatusCode.FORBIDDEN).json({ message: req.t('user_email_error') });
 	}
 };
 /**
@@ -58,7 +59,7 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 	} else {
 		if (!email || !password) {
 			res.status(StatusCode.UNAUTHORIZED).send({
-				message: 'Username and password is required'
+				message: req.t('user_handleLogin_empty_reg')
 			});
 			return;
 		} else {
@@ -66,22 +67,22 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 				const user = await UserModel.findOne({ email });
 				if (!user) {
 					res.status(StatusCode.UNAUTHORIZED).send({
-						message: `Check your credentials`
+						message: req.t('user_notfound_DB')
 					});
 					return;
 				}
 				const isValid = PasswordUtils.passwordValidator(password, user.hash, user.salt);
 				if (isValid) {
 					PasswordUtils.generateJwt(user, res);
-					res.send({ success: true, message: 'welcome', Goto: '/profile' });
+					res.send({ success: true, message: req.t('user_isValid') });
 				} else {
 					res.status(StatusCode.UNAUTHORIZED).send({
-						message: 'Check your credentials'
+						message: req.t('user_credentials_error')
 					});
 				}
 			} catch (error) {
 				res.status(StatusCode.BAD_REQUEST).send({
-					message: 'Error in UserController.login',
+					message: req.t(),
 					error: error.message
 				});
 			}
@@ -96,9 +97,9 @@ const handleLogin = async (req: any, res: Response, next: NextFunction) => {
 const logout = (req: any, res: Response) => {
 	try {
 		res.clearCookie('token');
-		res.send({ message: 'Successfully logged out. Redirecting to home page' });
+		res.send({ message: req.t('user_logout_success') });
 	} catch (error) {
-		res.send({ error: error.message, message: ' Couldnt log out user' });
+		res.send({ error: error.message, message: req.t('user_logout_error') });
 	}
 };
 
@@ -224,7 +225,7 @@ const addFavoriteWine = async (req: RequestType | any, res: Response) => {
 	try {
 		type WineProps = Pick<IWine, 'name' | '_id' | 'country'>;
 
-		const favoriteWine = await WineModel.findById(req.params.wineId);
+		const favoriteWine = await WineModel.findById(req.body.id);
 
 		const { name, _id, country, description, grapes, year }: any | null = favoriteWine;
 
@@ -232,14 +233,7 @@ const addFavoriteWine = async (req: RequestType | any, res: Response) => {
 			req.jwt.sub,
 			{
 				$addToSet: {
-					favoriteWines: {
-						name,
-						_id,
-						country,
-						description,
-						grapes,
-						year
-					}
+					favoriteWines: favoriteWine
 				}
 			},
 			{ new: true }

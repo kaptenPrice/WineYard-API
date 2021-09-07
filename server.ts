@@ -5,14 +5,23 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import middleWares from './src/middleware/MiddleWares';
+import MiddleWares from './src/middleware/MiddleWares';
+import i18next from 'i18next';
+import Backend from "i18next-fs-backend"
+import middleware  from "i18next-http-middleware";
 import DBConfiguration from './config/DBConfiguration';
 import UserRoutes from './src/routes/User.routes';
 import WineRoutes from './src/routes/Wine.routes';
 
-export type IHandlerProps = (req: Request, res: Response) => Promise<any | undefined>;
+i18next.use(Backend).use(middleware.LanguageDetector).init({
+	fallbackLng:"en",
+	backend:{
+		loadPath:"./locales/{{lng}}/translation.json"
+	}
+})
 
 const app: Application = express();
+app.use(middleware.handle(i18next))
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
@@ -33,7 +42,8 @@ DBConfiguration.connectToPort(app);
 UserRoutes.userRoutes(app);
 WineRoutes.wineRoutes(app);
 
-app.use(middleWares.notFound);
-app.use(middleWares.errorHandler);
+app.use(MiddleWares.notFound);
+app.use(MiddleWares.errorHandler);
 
 export default app;
+export type IHandlerProps = (req: Request, res: Response) => Promise<any | undefined>;
