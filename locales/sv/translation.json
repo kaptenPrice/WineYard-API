@@ -1,0 +1,12 @@
+{
+    "user_register_success":"Registreringen lyckades, logga in med dina uppgifter ",
+     "user_password_error":"Ange ditt lösenord",
+     "user_email_error":"Ange email",
+     "user_handleLogin_empty_reg":"Ange mailadress och lösenord",
+     "user_notfound_DB": "Användare kunde inte hittas",
+     "user_isValid": "Välkommen",
+     "user_credentials_error":"Uppgifterna stämmer ej",
+     "user_handlelogin_BAD_REQUEST":"Error vid inloggning",
+     "user_logout_success":"Lyckades logga ut, omdirigering om",
+     "user_logout_error":"Begäran misslyckades, prova igen"
+}

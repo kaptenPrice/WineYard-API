@@ -1,0 +1,16 @@
+{
+	"user_register_success": "Success, log in with your credentials ",
+	"user_password_error": "Password is required",
+	"user_email_error": "Email is required",
+	"user_handleLogin_empty_reg": "Email and password is required",
+	"user_notfound_DB": "Check your credentials",
+    "user_isValid": "Welcome",
+    "user_credentials_error":"Check your credentials",
+    "user_handlelogin_BAD_REQUEST":"Bad request in user controller",
+    "user_logout_success":"Successfully logged out. Redirecting in ",
+    "user_logout_error":"Couldnt log out user"
+
+
+
+
+}
