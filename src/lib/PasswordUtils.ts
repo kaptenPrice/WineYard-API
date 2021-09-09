@@ -4,11 +4,10 @@ import StatusCode from '../../config/StatusCode';
 import dotenv from 'dotenv';
 import { IUser } from '../model/User.model';
 import { Response, NextFunction, Request } from 'express';
-import { Schema, Types } from 'mongoose';
 dotenv.config();
 
-const PRIV_KEY: Secret = process.env.PRIVATE_KEY as Secret;
-const PUB_KEY: Secret = process.env.PUBLIC_KEY as Secret;
+const PRIV_KEY: string = process.env.PRIVATE_KEY.replace(/\\n/gm, '\n');
+const PUB_KEY: Secret = process.env.PUBLIC_KEY.replace(/\\n/gm, '\n');
 
 /**
  *Creating salt and hash from password and storing these in db.
@@ -126,5 +125,5 @@ export default {
 };
 
 export interface RequestType extends Request {
-	jwt: string |jsonWebToken.JwtPayload;
+	jwt: string | jsonWebToken.JwtPayload;
 }
