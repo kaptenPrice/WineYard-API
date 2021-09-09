@@ -35,7 +35,12 @@ app.use(
 		})
 	})
 );
-app.options('*', cors())
+app.options('*', cors({
+	"origin": "*",
+	"methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+	"preflightContinue": true,
+	"optionsSuccessStatus": 204
+  }))
 
 DBConfiguration.connectToDB();
 DBConfiguration.connectToPort(app);
