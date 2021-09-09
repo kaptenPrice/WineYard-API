@@ -7,21 +7,24 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import MiddleWares from './src/middleware/MiddleWares';
 import i18next from 'i18next';
-import Backend from "i18next-fs-backend"
-import middleware  from "i18next-http-middleware";
+import Backend from 'i18next-fs-backend';
+import middleware from 'i18next-http-middleware';
 import DBConfiguration from './config/DBConfiguration';
 import UserRoutes from './src/routes/User.routes';
 import WineRoutes from './src/routes/Wine.routes';
 
-i18next.use(Backend).use(middleware.LanguageDetector).init({
-	fallbackLng:"en",
-	backend:{
-		loadPath:"./locales/{{lng}}/translation.json"
-	}
-})
+i18next
+	.use(Backend)
+	.use(middleware.LanguageDetector)
+	.init({
+		fallbackLng: 'en',
+		backend: {
+			loadPath: './locales/{{lng}}/translation.json'
+		}
+	});
 
 const app: Application = express();
-app.use(middleware.handle(i18next))
+app.use(middleware.handle(i18next));
 
 app.use(express.urlencoded({ extended: true }));
 // app.use(cors({ origin: ['https://miwine.netlify.app'], credentials: true}));
@@ -35,12 +38,15 @@ app.use(
 		})
 	})
 );
-app.options('*', cors({
-	"origin": "*",
-	"methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-	"preflightContinue": true,
-	"optionsSuccessStatus": 204
-  }))
+app.options(
+	'*',
+	cors({
+		origin: ['https://miwine.netlify.app'],
+		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+		preflightContinue: true,
+		optionsSuccessStatus: 204
+	})
+);
 
 DBConfiguration.connectToDB();
 DBConfiguration.connectToPort(app);
