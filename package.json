@@ -4,9 +4,7 @@
 	"description": "REST-API",
 	"main": "server.ts",
 	"scripts": {
-		"build": "tsc && npm run start",
 		"postinstall": "tsc",
-
 		"start": "node ./dist/server.js",
 		"deploy": "git add . && git commit -m Heroku && git push heroku master"
 
