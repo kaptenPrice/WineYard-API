@@ -205,10 +205,10 @@ const handleResetPassword: IHandlerProps = async (req, res) => {
 const showProfile = async (req: RequestType, res: Response) => {
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
+		const email = profile.email;
 		const favoriteWines = await WineModel.find({
 			_id: { $in: profile?.favoriteWines }
 		});
-		const email = profile?.email;
 		res.status(StatusCode.OK).send({ profile: { email, favoriteWines } });
 	} catch (error) {
 		console.log('Profiel err: ', error.message);
@@ -221,15 +221,19 @@ const showProfile = async (req: RequestType, res: Response) => {
  * @param {*Authenticateduser.favoriteWines} res
  */
 
-const addFavoriteWine = async (req: RequestType | any, res: Response) => {
+const addFavoriteWine = async (req: RequestType, res: Response) => {
 	try {
-		type WineProps = Pick<IWine, 'name' | '_id' | 'country'>;
-
-		const favoriteWine = await WineModel.findById(req.body.id);
-
-		const { name, _id, country, description, grapes, year }: any | null = favoriteWine;
-
-		const authenticatedUser = await UserModel.findOneAndUpdate(
+		const favoriteWine = await WineModel.findByIdAndUpdate(
+			req.body.id,
+			{
+				$addToSet: {
+					likedBy: req.jwt.sub
+				}
+			},
+			{ new: true }
+		);
+		console.log(favoriteWine);
+		const authenticatedUser = await UserModel.findByIdAndUpdate(
 			req.jwt.sub,
 			{
 				$addToSet: {
@@ -238,7 +242,6 @@ const addFavoriteWine = async (req: RequestType | any, res: Response) => {
 			},
 			{ new: true }
 		);
-
 		res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines);
 	} catch (error) {
 		if (error.message.includes('null')) {

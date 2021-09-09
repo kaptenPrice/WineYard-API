@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Types } from 'mongoose';
 
 export const WineSchema = new mongoose.Schema(
 	{
@@ -9,7 +9,8 @@ export const WineSchema = new mongoose.Schema(
 		country: { type: String, required: true },
 		description: { type: String },
 		grapes: { type: String },
-		year: { type: String }
+		year: { type: String },
+		likedBy: [Schema.Types.ObjectId]
 	},
 	{
 		timestamps: true
@@ -26,4 +27,5 @@ export interface IWine extends mongoose.Document {
 	grapes: string | null;
 	year: string | null;
 	timestamps: Date;
+	likedBy:Array<string>
 }

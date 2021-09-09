@@ -3,7 +3,8 @@ import jsonWebToken, { Secret } from 'jsonwebtoken';
 import StatusCode from '../../config/StatusCode';
 import dotenv from 'dotenv';
 import { IUser } from '../model/User.model';
-import { Response, NextFunction } from 'express';
+import { Response, NextFunction, Request } from 'express';
+import { Schema, Types } from 'mongoose';
 dotenv.config();
 
 const PRIV_KEY: Secret = process.env.PRIVATE_KEY as Secret;
@@ -124,7 +125,6 @@ export default {
 	authVerifyByCookie
 };
 
-export interface RequestType extends Express.Request {
-	jwt: string | jsonWebToken.JwtPayload;
-	cookies?: { [key: string]: any };
+export interface RequestType extends Request {
+	jwt: string |jsonWebToken.JwtPayload;
 }

@@ -46,13 +46,12 @@ const getWinesPaginated: IHandlerProps = async (req, res) => {
 		if (typeof page !== 'number' || page <= 0) {
 			page = 1;
 		}
-
 		if (!size) {
 			size = 10;
 		}
 		const limit = parseInt(size);
 		const skip = (page - 1) * size;
-		const amountWines = await WineModel.count();
+		const amountWines = await WineModel.countDocuments();
 		const response = await WineModel.find().limit(limit).skip(skip);
 		res.send({
 			data: response,
@@ -75,9 +74,7 @@ const getWineById: IHandlerProps = async (req, res) => {
 		});
 	}
 };
-type keyType = {
-	key: string;
-};
+
 const getWineByNameOrCountry: IHandlerProps = async (req, res) => {
 	const property = /* req.body.name ? 'name' : 'country'; */ Object.keys(req.body)[0];
 	const value = req.body[property];
@@ -89,7 +86,7 @@ const getWineByNameOrCountry: IHandlerProps = async (req, res) => {
 			? res.status(StatusCode.FOUND).send(response)
 			: res.status(StatusCode.NOTFOUND).send({
 					message: `Couldnt find wine ${value}`
-			});
+			  });
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			error: error.message,
