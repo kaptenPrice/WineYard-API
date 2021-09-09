@@ -43,7 +43,7 @@ app.options(
 	cors({
 		origin: ['https://miwine.netlify.app'],
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-		preflightContinue: true,
+		preflightContinue: false,
 		optionsSuccessStatus: 204
 	})
 );
