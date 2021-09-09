@@ -53,7 +53,8 @@ const generateJwt = async (user: IUser, res: Response) => {
 	res.cookie('token', signedToken, {
 		expires: new Date(Date.now() + expiration),
 		secure: true, //TODO Set to true in production
-		httpOnly: false
+		httpOnly: false,
+		sameSite: 'none'
 	});
 
 	/**
