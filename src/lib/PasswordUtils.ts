@@ -51,9 +51,9 @@ const generateJwt = async (user: IUser, res: Response) => {
 		algorithm: 'RS256'
 	});
 	res.cookie('token', signedToken, {
-		expires: new Date(Date.now() + expiration)
-		//secure: false, //TODO Set to true in production
-		//httpOnly: true
+		expires: new Date(Date.now() + expiration),
+		secure: true, //TODO Set to true in production
+		httpOnly: false
 	});
 
 	/**
