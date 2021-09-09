@@ -4,12 +4,8 @@
 	"description": "REST-API",
 	"main": "server.ts",
 	"scripts": {
-		"test": "mocha 'tests/**'",
-		"start": "ts-node server.ts",
-		"dev": "ts-node-dev --respawn --notify false --prefer-ts --ignore-watch node_modules -- server.ts ",
-		"server": "concurrently \"npm run server\" \"cd ../frontend && npm start\"",
-		"lint": "eslint ./*.ts --fix",
-		"deploy": "git add . && git commit -m Heroku && git push heroku main"
+		"test": "mocha 'tests/**'"
+
 	},
 	"engines": {
 		"node": "16.4.2"
