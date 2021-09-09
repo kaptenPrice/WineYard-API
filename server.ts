@@ -46,7 +46,7 @@ app.options(
 		preflightContinue: false,
 		optionsSuccessStatus: 204,
 		credentials: true,
-		allowedHeaders:"*"
+		allowedHeaders:"*",
 	})
 );
 
