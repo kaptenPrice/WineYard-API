@@ -5,7 +5,7 @@
 	"main": "server.ts",
 	"scripts": {
 		"test": "mocha 'tests/**'",
-		"start": "nodemon --watch '*.ts' --exec ts-node server.ts",
+		"start": "ts-node server.ts",
 		"dev": "ts-node-dev --respawn --notify false --prefer-ts --ignore-watch node_modules -- server.ts ",
 		"server": "concurrently \"npm run server\" \"cd ../frontend && npm start\"",
 		"lint": "eslint ./*.ts --fix",
@@ -38,7 +38,6 @@
 		"mongoose": "^5.12.7",
 		"morgan": "^1.10.0",
 		"nodemailer": "^6.6.3",
-		"nodemon": "^2.0.12",
 		"ts-node": "^10.1.0",
 		"typescript": "^3.9.10"
 	},
