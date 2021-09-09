@@ -44,7 +44,8 @@ app.options(
 		origin: ['https://miwine.netlify.app'],
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 		preflightContinue: false,
-		optionsSuccessStatus: 204
+		optionsSuccessStatus: 204,
+		credentials: true
 	})
 );
 
