@@ -233,15 +233,17 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
 			{ new: true }
 		);
 		console.log(favoriteWine);
-		const authenticatedUser = await UserModel.findByIdAndUpdate(
+		//@ts-ignore
+		const { name, _id } = favoriteWine;
+		 const authenticatedUser = await UserModel.findByIdAndUpdate(
 			req.jwt.sub,
 			{
 				$addToSet: {
-					favoriteWines: favoriteWine
+					favoriteWines: {name, _id}
 				}
 			},
 			{ new: true }
-		);
+		); 
 		res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines);
 	} catch (error) {
 		if (error.message.includes('null')) {
