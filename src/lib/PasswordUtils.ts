@@ -54,7 +54,7 @@ const generateJwt = async (user: IUser, res: Response) => {
 		expires: new Date(Date.now() + expiration),
 		secure: true, //TODO Set to true in production
 		httpOnly: false,
-		sameSite: 'none'
+		// sameSite: 'none'
 	});
 
 	/**

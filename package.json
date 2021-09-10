@@ -6,8 +6,8 @@
 	"scripts": {
 		"postinstall": "tsc",
 		"start": "node ./dist/server.js",
-		"deploy": "git add . && git commit -m Heroku && git push"
-
+		"deploy": "git add . && git commit -m Heroku && git push",
+		"dev:heroku": "rmdir dist /s /q && tsc && heroku local"
 	},
 	"engines": {
 		"node": "16.x"

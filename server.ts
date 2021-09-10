@@ -25,9 +25,10 @@ i18next
 
 const app: Application = express();
 app.use(middleware.handle(i18next));
+// app.use(cors())
 
 app.use(express.urlencoded({ extended: true }));
-// app.use(cors({ origin: ['https://miwine.netlify.app'], credentials: true}));
+app.use(cors({ origin: ['http://localhost:3000'], credentials: true}));
 app.use(express.json());
 app.use(helmet());
 app.use(cookieParser());
@@ -38,17 +39,16 @@ app.use(
 		})
 	})
 );
-app.options(
+/* app.options(
 	'*',
 	cors({
-		origin: ['https://miwine.netlify.app'],
-		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-		preflightContinue: false,
-		optionsSuccessStatus: 204,
+		origin: ['http://localhost:3000'],
+		// methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 		credentials: true,
-		allowedHeaders:"*",
+		//preflightContinue: true
+		// allowedHeaders:"*",
 	})
-);
+); */
 
 DBConfiguration.connectToDB();
 DBConfiguration.connectToPort(app);
