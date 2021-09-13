@@ -57,7 +57,8 @@ const getWinesPaginated: IHandlerProps = async (req, res) => {
 			data: response,
 			page,
 			size,
-			amountWines
+			amountWines,
+			
 		});
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });

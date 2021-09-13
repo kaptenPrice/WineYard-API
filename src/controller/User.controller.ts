@@ -209,7 +209,7 @@ const showProfile = async (req: RequestType, res: Response) => {
 		const favoriteWines = await WineModel.find({
 			_id: { $in: profile?.favoriteWines }
 		});
-		res.status(StatusCode.OK).send({ profile: { email, favoriteWines } });
+		res.status(StatusCode.OK).send({ profile, favoriteWines });
 	} catch (error) {
 		console.log('Profiel err: ', error.message);
 		res.status(StatusCode.UNAUTHORIZED).send({ error: error.message });
@@ -233,18 +233,18 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
 			{ new: true }
 		);
 		console.log(favoriteWine);
-		//@ts-ignore
-		const { name, _id } = favoriteWine;
-		 const authenticatedUser = await UserModel.findByIdAndUpdate(
+
+		const authenticatedUser = await UserModel.findByIdAndUpdate(
 			req.jwt.sub,
 			{
 				$addToSet: {
-					favoriteWines: {name, _id}
+					favoriteWines: favoriteWine
 				}
 			},
 			{ new: true }
-		); 
-		res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines);
+		);
+		// res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines);
+		res.status(StatusCode.OK).send(favoriteWine);
 	} catch (error) {
 		if (error.message.includes('null')) {
 			res.status(StatusCode.NOTFOUND).send({
@@ -367,3 +367,5 @@ export default {
 	addFavoriteWine,
 	deleteWineFromUsersList
 };
+
+//		"deploy": "git add . && git commit -m Heroku && git push",

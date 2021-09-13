@@ -13,8 +13,22 @@ const UserSchema = new Schema(
 				'Please fill a valid email address'
 			]
 		},
-	
-		favoriteWines: [WineSchema],
+
+		favoriteWines: [
+			{
+				name: {
+					type: String,
+					required: true
+				},
+				country: { type: String, required: true },
+				description: { type: String },
+				grapes: { type: String },
+				year: { type: String }
+			},
+			{
+				timestamps: false
+			}
+		],
 		admin: Boolean,
 		resetPasswordToken: String,
 		resetPasswordExpires: Date
