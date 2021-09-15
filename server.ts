@@ -12,6 +12,11 @@ import middleware from 'i18next-http-middleware';
 import DBConfiguration from './config/DBConfiguration';
 import UserRoutes from './src/routes/User.routes';
 import WineRoutes from './src/routes/Wine.routes';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 i18next
 	.use(Backend)
@@ -22,13 +27,31 @@ i18next
 			loadPath: './locales/{{lng}}/translation.json'
 		}
 	});
-
 const app: Application = express();
+
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+	transports: ['websocket', 'polling'],
+	cors: { origin: 'http://localhost:3000', credentials: true }
+});
+io.on('connect', (socket) => {
+	console.log('A user is connected');
+	socket.on('message', () => {
+		console.log(`message from ${socket.id}`);
+	});
+	socket.on('disconnect', () => {
+		console.log(`socket ${socket.id} disconnected`);
+	});
+});
+export { io };
+
 app.use(middleware.handle(i18next));
-// app.use(cors())
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: ['https://miwine.netlify.app', "http://localhost:3000"], credentials: true}));
+app.use(
+	cors({ origin: ['https://miwine.netlify.app', 'http://localhost:3000'], credentials: true })
+);
 app.use(express.json());
 app.use(helmet());
 app.use(cookieParser());
@@ -39,25 +62,16 @@ app.use(
 		})
 	})
 );
-/* app.options(
-	'*',
-	cors({
-		origin: ['http://localhost:3000'],
-		// methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-		credentials: true,
-		//preflightContinue: true
-		// allowedHeaders:"*",
-	})
-); */
 
 DBConfiguration.connectToDB();
-DBConfiguration.connectToPort(app);
+
+DBConfiguration.connectToPort(httpServer);
 
 UserRoutes.userRoutes(app);
 WineRoutes.wineRoutes(app);
 
-app.use(MiddleWares.notFound);
-app.use(MiddleWares.errorHandler);
+/* app.use(MiddleWares.notFound);
+app.use(MiddleWares.errorHandler); */
 
 export default app;
 export type IHandlerProps = (req: Request, res: Response) => Promise<any | undefined>;

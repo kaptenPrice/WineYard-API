@@ -13,7 +13,6 @@ const UserSchema = new Schema(
 				'Please fill a valid email address'
 			]
 		},
-
 		favoriteWines: [
 			{
 				name: {

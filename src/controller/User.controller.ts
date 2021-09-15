@@ -2,7 +2,7 @@ import UserModel from '../model/User.model';
 import StatusCode from '../../config/StatusCode';
 import WineModel, { IWine } from '../model/Wine.model';
 import PasswordUtils, { RequestType } from '../lib/PasswordUtils';
-import { IHandlerProps } from '../../server';
+import { IHandlerProps, io } from '../../server';
 import { NextFunction, Response } from 'express';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
@@ -232,7 +232,7 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
 			},
 			{ new: true }
 		);
-		console.log(favoriteWine);
+		io.emit('wine-liked', favoriteWine);
 
 		const authenticatedUser = await UserModel.findByIdAndUpdate(
 			req.jwt.sub,
@@ -243,7 +243,6 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
 			},
 			{ new: true }
 		);
-		// res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines);
 		res.status(StatusCode.OK).send(favoriteWine);
 	} catch (error) {
 		if (error.message.includes('null')) {
@@ -272,6 +271,19 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
  */
 const deleteWineFromUsersList = async (req: RequestType | any, res: Response) => {
 	try {
+		const response = await WineModel.findByIdAndUpdate(
+			req.params.wineId,
+			{
+				$pull: {
+					likedBy: req.jwt.sub
+				}
+			},
+			{ new: true }
+		);
+		io.emit('wine-unliked', response);
+		console.log('REMOVED from wines likedBy: ', response);
+
+		res.send(response);
 		const authenticatedUser = await UserModel.findOneAndUpdate(
 			req.jwt.sub,
 			{
@@ -283,9 +295,11 @@ const deleteWineFromUsersList = async (req: RequestType | any, res: Response) =>
 			},
 			{ new: true }
 		);
-		authenticatedUser?.favoriteWines?.length !== 0
-			? res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines)
-			: res.status(StatusCode.OK).send(authenticatedUser);
+		// console.log("removed from userns favorites:  ",authenticatedUser?.favoriteWines)
+
+		// authenticatedUser?.favoriteWines?.length !== 0
+		// 	? res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines)
+		// 	: res.status(StatusCode.OK).send(authenticatedUser);
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}

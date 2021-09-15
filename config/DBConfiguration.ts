@@ -23,8 +23,8 @@ const connectToDB = async () => {
 }
 
 
-const connectToPort = (app: Application) => {
-	app.listen(port, () => {
+const connectToPort = (server:any) => {
+	server.listen(port, () => {
 		console.log(`__ THE LONELY SERVER IS UP AND RUNNING ON __ ${port}`)
 	})
 }
