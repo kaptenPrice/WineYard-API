@@ -6,7 +6,7 @@ const wineRoutes = (app: any) => {
 	/** POST requires input from body : name, country, description, grapes, year */
 	app.post(
 		'/wine/add',
-		// passwordUtils.authVerifyByCookie,
+		passwordUtils.authVerifyByCookie,
 		upload.single('avatar'),
 		WineCtrl.addWine
 	);

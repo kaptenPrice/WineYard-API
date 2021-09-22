@@ -1,10 +1,15 @@
 import WineModel from '../model/Wine.model';
 import StatusCode from '../../config/StatusCode';
 import { objectFilter } from '../middleware/MiddleWares';
-import { IHandlerProps } from '../../server';
-import { upload } from '../middleware/MiddleWares';
+import { IHandlerProps, io } from '../../server';
+import { RequestType } from '../lib/PasswordUtils';
+import { Response } from 'express';
+import UserModel from '../model/User.model';
 
-const addWine: IHandlerProps = async (req, res) => {
+const addWine = async (req: RequestType, res: Response) => {
+	const userId = req?.jwt?.sub;
+	const { email } = await UserModel.findById(userId);
+
 	const avatar = req.file?.path;
 	const { name, country, description, grapes, year } = req.body;
 	try {
@@ -13,15 +18,16 @@ const addWine: IHandlerProps = async (req, res) => {
 				.status(StatusCode.BAD_REQUEST)
 				.send({ message: 'Cannot insert empty values' });
 		}
-
 		const response = await new WineModel({
 			name,
 			country,
 			description,
 			grapes,
 			year,
-			avatar
+			avatar,
+			addedByUser: email
 		}).save();
+		io.emit('wine-added', response);
 		console.log('response : ', response);
 
 		res.status(StatusCode.CREATED).send(response);

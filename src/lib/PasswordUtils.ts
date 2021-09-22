@@ -98,6 +98,7 @@ const authVerifyByToken = async (req: RequestType | any, res: Response, next: Ne
  */
 const authVerifyByCookie = async (req: RequestType, res: Response, next: NextFunction) => {
 	let token = req.cookies?.token;
+	
 
 	if (token?.match(/\S+\.\S+\.\S+/) !== null) {
 		try {

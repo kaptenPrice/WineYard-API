@@ -1,6 +1,6 @@
 import UserModel from '../model/User.model';
 import StatusCode from '../../config/StatusCode';
-import WineModel, { IWine } from '../model/Wine.model';
+import WineModel from '../model/Wine.model';
 import PasswordUtils, { RequestType } from '../lib/PasswordUtils';
 import { IHandlerProps, io } from '../../server';
 import { NextFunction, Response } from 'express';
@@ -121,8 +121,6 @@ const handleForgottPassword: IHandlerProps = async (req, res) => {
 				},
 				{ new: true }
 			);
-			console.log('CurrentUSer: ', currentUser);
-
 			const transporter = nodemailer.createTransport({
 				service: 'gmail',
 				auth: {
@@ -203,6 +201,8 @@ const handleResetPassword: IHandlerProps = async (req, res) => {
  * @param res username and favoritewines-array
  */
 const showProfile = async (req: RequestType, res: Response) => {
+	console.log('ID : ', req.jwt.sub);
+	
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
 		const email = profile.email;
@@ -295,11 +295,7 @@ const deleteWineFromUsersList = async (req: RequestType | any, res: Response) =>
 			},
 			{ new: true }
 		);
-		// console.log("removed from userns favorites:  ",authenticatedUser?.favoriteWines)
 
-		// authenticatedUser?.favoriteWines?.length !== 0
-		// 	? res.status(StatusCode.OK).send(authenticatedUser?.favoriteWines)
-		// 	: res.status(StatusCode.OK).send(authenticatedUser);
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}
@@ -324,6 +320,7 @@ const getUserById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.findById(req.params.userId);
 		res.status(StatusCode.OK).send(response);
+		return response
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			error: error.message,
