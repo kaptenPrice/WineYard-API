@@ -1,9 +1,15 @@
 import WineCtrl from '../controller/Wine.controller';
 import passwordUtils from '../lib/PasswordUtils';
+import { upload } from '../middleware/MiddleWares';
 
 const wineRoutes = (app: any) => {
 	/** POST requires input from body : name, country, description, grapes, year */
-	app.post('/wine/add', passwordUtils.authVerifyByCookie, WineCtrl.addWine);
+	app.post(
+		'/wine/add',
+		// passwordUtils.authVerifyByCookie,
+		upload.single('avatar'),
+		WineCtrl.addWine
+	);
 
 	/** PATCH requires wineId, uppdates parameters in this.wine */
 	app.patch('/wine/update/:wineId', passwordUtils.authVerifyByCookie, WineCtrl.updateWine);

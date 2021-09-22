@@ -10,7 +10,8 @@ export const WineSchema = new mongoose.Schema(
 		description: { type: String },
 		grapes: { type: String },
 		year: { type: String },
-		likedBy: [Schema.Types.ObjectId]
+		likedBy: [Schema.Types.ObjectId],
+		avatar: { type: String, require: false }
 	},
 	{
 		timestamps: true
@@ -27,5 +28,6 @@ export interface IWine extends mongoose.Document {
 	grapes: string | null;
 	year: string | null;
 	timestamps: Date;
-	likedBy:Array<string>
+	likedBy: Array<string>;
+	avatar: string;
 }

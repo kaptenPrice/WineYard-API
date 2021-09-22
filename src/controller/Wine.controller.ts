@@ -2,8 +2,10 @@ import WineModel from '../model/Wine.model';
 import StatusCode from '../../config/StatusCode';
 import { objectFilter } from '../middleware/MiddleWares';
 import { IHandlerProps } from '../../server';
+import { upload } from '../middleware/MiddleWares';
 
 const addWine: IHandlerProps = async (req, res) => {
+	const avatar = req.file?.path;
 	const { name, country, description, grapes, year } = req.body;
 	try {
 		if (!name || !country) {
@@ -11,18 +13,22 @@ const addWine: IHandlerProps = async (req, res) => {
 				.status(StatusCode.BAD_REQUEST)
 				.send({ message: 'Cannot insert empty values' });
 		}
+
 		const response = await new WineModel({
 			name,
 			country,
 			description,
 			grapes,
-			year
+			year,
+			avatar
 		}).save();
+		console.log('response : ', response);
+
 		res.status(StatusCode.CREATED).send(response);
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			message: `${name} already exists`,
-			error: error.message
+			error: error.message.startsWith('E11000') ? 'duplicated name' : error.message
 		});
 	}
 };
@@ -57,8 +63,7 @@ const getWinesPaginated: IHandlerProps = async (req, res) => {
 			data: response,
 			page,
 			size,
-			amountWines,
-			
+			amountWines
 		});
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });

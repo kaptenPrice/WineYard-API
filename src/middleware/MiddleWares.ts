@@ -1,16 +1,21 @@
 import dotenv from 'dotenv';
 import { NextFunction } from 'express';
-
+import multer from 'multer';
 
 dotenv.config();
 
-const notFound = (req: Express.Request |any, res: Express.Response | any, next : NextFunction ) => {
+export const notFound = (req: Express.Request | any, res: Express.Response | any, next: NextFunction) => {
 	const error = new Error(`Not found ${req.originalUrl}`);
 	res.status(404);
 	next(error);
 };
 
-const errorHandler  = (error:any, req: Express.Request |any, res: Express.Response | any, next: NextFunction) => {
+export const errorHandler = (
+	error: any,
+	req: Express.Request | any,
+	res: Express.Response | any,
+	next: NextFunction
+) => {
 	const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
 	res.status(statusCode);
 	res.json({
@@ -34,4 +39,4 @@ export const objectFilter = (obj: Object, preventedValue: string | any) => {
 	);
 };
 
-export default { notFound, errorHandler };
+export const upload = multer({ dest: 'uploads' });
