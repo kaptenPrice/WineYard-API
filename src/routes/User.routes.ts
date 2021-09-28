@@ -22,29 +22,7 @@ const availableRoutes = [
 	'/user/getbyid'
 ];
 const userRoutes = (app: any) => {
-	//sending layout to login and register
-	app.get('/register', (req: Request, res: Response) => {
-		if (!req.cookies?.token) {
-			console.log(__dirname);
-			res.sendFile(path.join(__dirname, '../../register.html'));
-		} else {
-			res.redirect('/profile');
-		}
-	});
-	app.get('/login', (req: Request, res: Response) => {
-		if (!req.cookies.token) {
-			res.sendFile(path.join(__dirname, '../../login.html'));
-		} else {
-			res.redirect('/profile');
-		}
-	});
-	app.get('/', (req: Request, res: Response) => {
-		res.send({
-			message: 'Wine Api',
-			Goto: '/login',
-			links: `${Object.values(availableRoutes)}`
-		});
-	});
+
 	app.post('/register', UserCtrl.handleRegister);
 	
 	app.post('/login', UserCtrl.handleLogin);
@@ -78,7 +56,35 @@ const userRoutes = (app: any) => {
 		UserCtrl.getUserByUserNameQuery
 	);
 	app.delete('/user/delete/:userId', passwordUtils.authVerifyByCookie, UserCtrl.deleteUserById);
+
+
+
+	
+		//sending layout to login and register
+		app.get('/register', (req: Request, res: Response) => {
+			if (!req.cookies?.token) {
+				console.log(__dirname);
+				res.sendFile(path.join(__dirname, '../../register.html'));
+			} else {
+				res.redirect('/profile');
+			}
+		});
+		app.get('/login', (req: Request, res: Response) => {
+			if (!req.cookies.token) {
+				res.sendFile(path.join(__dirname, '../../login.html'));
+			} else {
+				res.redirect('/profile');
+			}
+		});
+		app.get('/', (req: Request, res: Response) => {
+			res.send({
+				message: 'Wine Api',
+				Goto: '/login',
+				links: `${Object.values(availableRoutes)}`
+			});
+		});
 };
+
 
 export default {
 	userRoutes

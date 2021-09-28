@@ -196,22 +196,19 @@ const handleResetPassword: IHandlerProps = async (req, res) => {
 };
 
 /**
- *
  * @param req Id from sub(jwt sub)
  * @param res username and favoritewines-array
  */
 const showProfile = async (req: RequestType, res: Response) => {
-	console.log('ID : ', req.jwt.sub);
-	
 	try {
 		const profile = await UserModel.findOne({ _id: req.jwt.sub });
-		const email = profile.email;
 		const favoriteWines = await WineModel.find({
 			_id: { $in: profile?.favoriteWines }
 		});
 		res.status(StatusCode.OK).send({ profile, favoriteWines });
 	} catch (error) {
-		console.log('Profiel err: ', error.message);
+		console.log('Profile error: ', error.message);
+
 		res.status(StatusCode.UNAUTHORIZED).send({ error: error.message });
 	}
 };
@@ -220,7 +217,6 @@ const showProfile = async (req: RequestType, res: Response) => {
  * @param {*Wine ID} req
  * @param {*Authenticateduser.favoriteWines} res
  */
-
 const addFavoriteWine = async (req: RequestType, res: Response) => {
 	try {
 		const favoriteWine = await WineModel.findByIdAndUpdate(
@@ -234,7 +230,7 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
 		);
 		io.emit('wine-liked', favoriteWine);
 
-		const authenticatedUser = await UserModel.findByIdAndUpdate(
+		await UserModel.findByIdAndUpdate(
 			req.jwt.sub,
 			{
 				$addToSet: {
@@ -295,7 +291,6 @@ const deleteWineFromUsersList = async (req: RequestType | any, res: Response) =>
 			},
 			{ new: true }
 		);
-
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}
@@ -320,7 +315,7 @@ const getUserById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await UserModel.findById(req.params.userId);
 		res.status(StatusCode.OK).send(response);
-		return response
+		return response;
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			error: error.message,

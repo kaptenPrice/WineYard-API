@@ -1,6 +1,6 @@
 import { BinaryLike } from 'crypto';
 import { Schema, model, Document, Types } from 'mongoose';
-import { WineSchema, IWine } from './Wine.model';
+import { IWine } from './Wine.model';
 
 const UserSchema = new Schema(
 	{

@@ -3,7 +3,7 @@ import StatusCode from '../../config/StatusCode';
 import { objectFilter } from '../middleware/MiddleWares';
 import { IHandlerProps, io } from '../../server';
 import { RequestType } from '../lib/PasswordUtils';
-import { Response } from 'express';
+import { response, Response } from 'express';
 import UserModel from '../model/User.model';
 
 const addWine = async (req: RequestType, res: Response) => {
@@ -25,17 +25,25 @@ const addWine = async (req: RequestType, res: Response) => {
 			grapes,
 			year,
 			avatar,
-			addedByUser: email
+			addedByUser: { email, userId }
 		}).save();
 		io.emit('wine-added', response);
-		console.log('response : ', response);
-
 		res.status(StatusCode.CREATED).send(response);
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			message: `${name} already exists`,
 			error: error.message.startsWith('E11000') ? 'duplicated name' : error.message
 		});
+	}
+};
+const getWineAddedByCurrentUser: IHandlerProps = async (req: RequestType, res) => {
+	const userId = req?.jwt?.sub;
+
+	try {
+		const response = await WineModel.find({ 'addedByUser.userId': userId });
+		res.send(response);
+	} catch (error) {
+		console.log('error: ', error);
 	}
 };
 
@@ -148,9 +156,8 @@ const updateWine: IHandlerProps = async (req, res) => {
 const deleteWineById: IHandlerProps = async (req, res) => {
 	try {
 		const response = await WineModel.findByIdAndDelete(req.params.wineId);
-		res.status(StatusCode.OK).send({
-			message: `Successfully deleted: ID ${response?._id}`
-		});
+		res.status(StatusCode.OK).send(response);
+		io.emit('wine-deleted', response);
 	} catch (error) {
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
 			message:
@@ -167,5 +174,6 @@ export default {
 	addWine,
 	updateWine,
 	getWineByNameOrCountry,
-	deleteWineById
+	deleteWineById,
+	getWineAddedByCurrentUser
 };

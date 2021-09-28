@@ -70,6 +70,7 @@ const generateJwt = async (user: IUser, res: Response) => {
  * @param {*} req pick the token from header
  */
 const authVerifyByToken = async (req: RequestType | any, res: Response, next: NextFunction) => {
+	console.log("authVerifyByToken OK!")
 	const tokenParts = await req.headers.authorization?.split(' ');
 	if (tokenParts && tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
 		try {
@@ -79,6 +80,7 @@ const authVerifyByToken = async (req: RequestType | any, res: Response, next: Ne
 			req.jwt = payload;
 			next();
 		} catch (error) {
+
 			res.status(StatusCode.UNAUTHORIZED).send({
 				message: 'You lack authority to access this endpoint, log in please',
 				error: error.message
@@ -98,7 +100,6 @@ const authVerifyByToken = async (req: RequestType | any, res: Response, next: Ne
  */
 const authVerifyByCookie = async (req: RequestType, res: Response, next: NextFunction) => {
 	let token = req.cookies?.token;
-	
 
 	if (token?.match(/\S+\.\S+\.\S+/) !== null) {
 		try {
@@ -128,4 +129,5 @@ export default {
 
 export interface RequestType extends Request {
 	jwt: string | jsonWebToken.JwtPayload;
+	status: number;
 }
