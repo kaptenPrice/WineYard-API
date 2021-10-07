@@ -40,14 +40,14 @@ const passwordValidator = (password: BinaryLike, hash: BinaryLike, salt: BinaryL
  */
 const generateJwt = async (user: IUser, res: Response) => {
 	const _id = user._id;
-	const expiresIn = '1d';
+	// const expiresIn = '1d';
 	const expiration = process.env.ENVIROMENT === 'DEVELOPMENT' ? 3600000 : 604800000;
 	const payload = {
 		sub: _id,
 		iat: Math.floor(Date.now() / 1000)
 	};
 	const signedToken = jsonWebToken.sign(payload, PRIV_KEY, {
-		expiresIn: expiresIn,
+		expiresIn: expiration,
 		algorithm: 'RS256'
 	});
 	res.cookie('token', signedToken, {
@@ -70,7 +70,7 @@ const generateJwt = async (user: IUser, res: Response) => {
  * @param {*} req pick the token from header
  */
 const authVerifyByToken = async (req: RequestType | any, res: Response, next: NextFunction) => {
-	console.log("authVerifyByToken OK!")
+	console.log('authVerifyByToken OK!');
 	const tokenParts = await req.headers.authorization?.split(' ');
 	if (tokenParts && tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
 		try {
@@ -80,7 +80,6 @@ const authVerifyByToken = async (req: RequestType | any, res: Response, next: Ne
 			req.jwt = payload;
 			next();
 		} catch (error) {
-
 			res.status(StatusCode.UNAUTHORIZED).send({
 				message: 'You lack authority to access this endpoint, log in please',
 				error: error.message
@@ -107,6 +106,7 @@ const authVerifyByCookie = async (req: RequestType, res: Response, next: NextFun
 			req.jwt = payload;
 			next();
 		} catch (error) {
+			res.clearCookie('token');
 			res.status(StatusCode.UNAUTHORIZED).send({
 				message: 'Invalid auth, log in again',
 				error: error.message
