@@ -56,7 +56,6 @@ const getAllWines: IHandlerProps = async (req, res) => {
 	}
 };
 /**
- *
  * @param req page and size
  * @param res repsonse from db
  */

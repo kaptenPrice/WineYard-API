@@ -37,7 +37,7 @@ const handleRegister: IHandlerProps = async (req, res) => {
 		} catch (err) {
 			console.log(err.message);
 			res.status(StatusCode.BAD_REQUEST).json({
-				message: err?.errors ? errorParser(err.errors)?.email : err.message
+				error: err.message.includes("unique")? "User already exist": err.message
 			});
 		}
 	} else {
@@ -266,32 +266,39 @@ const addFavoriteWine = async (req: RequestType, res: Response) => {
  * @param {*Authenticateduser.favoriteWines} res
  */
 const deleteWineFromUsersList = async (req: RequestType | any, res: Response) => {
+	const userId = req?.jwt?.sub;
+	const wId = req.params.wineId;
+
 	try {
+		console.log('uid:', req.jwt.sub);
+		console.log('wid:', req.params.wineId);
+
 		const response = await WineModel.findByIdAndUpdate(
-			req.params.wineId,
+			wId,
 			{
 				$pull: {
-					likedBy: req.jwt.sub
+					likedBy: userId
 				}
 			},
 			{ new: true }
 		);
-		io.emit('wine-unliked', response);
-		console.log('REMOVED from wines likedBy: ', response);
 
-		res.send(response);
-		const authenticatedUser = await UserModel.findOneAndUpdate(
-			req.jwt.sub,
+		const respo = await UserModel.findByIdAndUpdate(
+			userId,
 			{
 				$pull: {
 					favoriteWines: {
-						_id: req.params.wineId
+						_id: wId
 					}
 				}
 			},
 			{ new: true }
 		);
+		console.log(respo);
+		io.emit('wine-unliked', response);
+		res.send(response);
 	} catch (error) {
+		console.log(error);
 		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}
 };

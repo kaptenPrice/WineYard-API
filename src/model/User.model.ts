@@ -1,6 +1,7 @@
 import { BinaryLike } from 'crypto';
 import { Schema, model, Document, Types } from 'mongoose';
 import { IWine } from './Wine.model';
+import uniqueValidator from 'mongoose-unique-validator';
 
 const UserSchema = new Schema(
 	{
@@ -8,6 +9,7 @@ const UserSchema = new Schema(
 		salt: String,
 		email: {
 			type: String,
+			unique: true,
 			match: [
 				/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
 				'Please fill a valid email address'
@@ -22,7 +24,8 @@ const UserSchema = new Schema(
 				country: { type: String, required: true },
 				description: { type: String },
 				grapes: { type: String },
-				year: { type: String }
+				year: { type: String },
+				avatar: { type: String }
 			},
 			{
 				timestamps: false
@@ -36,7 +39,7 @@ const UserSchema = new Schema(
 		timestamps: true
 	}
 );
-
+UserSchema.plugin(uniqueValidator, { message: 'Error, expected {PATH} to be unique.' });
 const UserModel = model<IUser>('user', UserSchema);
 
 export default UserModel;

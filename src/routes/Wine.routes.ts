@@ -22,7 +22,11 @@ const wineRoutes = (app: any) => {
 	/**GET requires wineId in params, shows wine from collection.wine */
 	app.get('/wine/getbyid/:wineId', passwordUtils.authVerifyByCookie, WineCtrl.getWineById);
 
-	app.get("/wine/getbyaddedby",passwordUtils.authVerifyByCookie, WineCtrl.getWineAddedByCurrentUser)
+	app.get(
+		'/wine/getaddedby',
+		passwordUtils.authVerifyByCookie,
+		WineCtrl.getWineAddedByCurrentUser
+	);
 
 	/**GET requires name(wine) in params, shows wine from collection.wine*/
 	app.post(
