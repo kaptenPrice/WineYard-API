@@ -1,384 +1,87 @@
-import UserModel from '../model/User.model';
+import { HandlerProps } from '../../server';
+import { pool } from '../../config/PsqlDBConfig';
 import StatusCode from '../../config/StatusCode';
-import WineModel from '../model/Wine.model';
-import PasswordUtils, { RequestType } from '../lib/PasswordUtils';
-import { IHandlerProps, io } from '../../server';
-import { NextFunction, Response } from 'express';
-import crypto from 'crypto';
-import mongoose from 'mongoose';
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
 
-import { errorParser } from '../lib/helper';
-
-dotenv.config();
-
-/**
- * POST
- * @param {*password, email} req
- * @param {*redirect("/login")} res
- * @param {*null} next
- */
-const handleRegister: IHandlerProps = async (req, res) => {
-	const { email, password } = await req.body;
-
-	if (email && password) {
-		const { salt, hash } = PasswordUtils.passwordGenerator(password);
-		try {
-			await new UserModel({
-				email,
-				hash,
-				salt
-			})
-				.save()
-				.then((user) => {
-					res.status(StatusCode.OK).send({ message: req.t('user_register_success') });
-				});
-		} catch (err) {
-			console.log(err.message);
-			res.status(StatusCode.BAD_REQUEST).json({
-				error: err.message.includes("unique")? "User already exist": err.message
-			});
-		}
-	} else {
-		!password
-			? res.status(StatusCode.FORBIDDEN).json({ message: req.t('user_password_error') })
-			: res.status(StatusCode.FORBIDDEN).json({ message: req.t('user_email_error') });
-	}
-};
-/**
- * POST
- * @param {*password, email} req
- * @param {*redirect("/login")} res
- * @param {*null} next
- */
-const handleLogin = async (req: any, res: Response, next: NextFunction) => {
-	const { email, password } = await req.body;
-	if (req.cookies.token) {
-		res.redirect('/');
-	} else {
-		if (!email || !password) {
-			res.status(StatusCode.UNAUTHORIZED).send({
-				message: req.t('user_handleLogin_empty_reg')
-			});
-			return;
-		} else {
-			try {
-				const user = await UserModel.findOne({ email });
-				if (!user) {
-					res.status(StatusCode.UNAUTHORIZED).send({
-						message: req.t('user_notfound_DB')
-					});
-					return;
-				}
-				const isValid = PasswordUtils.passwordValidator(password, user.hash, user.salt);
-				if (isValid) {
-					PasswordUtils.generateJwt(user, res);
-					res.send({ success: true, message: req.t('user_isValid') });
-				} else {
-					res.status(StatusCode.UNAUTHORIZED).send({
-						message: req.t('user_credentials_error')
-					});
-				}
-			} catch (error) {
-				res.status(StatusCode.BAD_REQUEST).send({
-					message: req.t(),
-					error: error.message
-				});
-			}
-		}
-	}
-};
-/**
- * GET
- * @param {*} req
- * @param {*redirect("/login")} res
- */
-const logout = (req: any, res: Response) => {
+export const getUsers: HandlerProps = async (req, res) => {
 	try {
-		res.clearCookie('token');
-		res.send({ message: req.t('user_logout_success') });
+		const { rows } = await pool.query('SELECT * FROM public."Users"');
+		res.status(StatusCode.OK).json(rows);
+		// pool.end();
 	} catch (error) {
-		res.send({ error: error.message, message: req.t('user_logout_error') });
-	}
-};
-
-const handleForgottPassword: IHandlerProps = async (req, res) => {
-	const { email } = req.body;
-	if (email === '') {
-		res.status(StatusCode.BAD_REQUEST).send({ message: 'Email is required' });
-		return;
-	} else {
-		try {
-			const randomByte = crypto.randomBytes(12).toString('hex');
-			const temporaryToken = mongoose.Types.ObjectId(randomByte);
-			const expiresIn = 3600000;
-			const currentUser = await UserModel.findOneAndUpdate(
-				{ email },
-				{
-					resetPasswordToken: temporaryToken,
-					resetPasswordExpires: Date.now() + expiresIn
-				},
-				{ new: true }
-			);
-			const transporter = nodemailer.createTransport({
-				service: 'gmail',
-				auth: {
-					user: process.env.EMAIL,
-					pass: process.env.PASSWORD
-				}
-			});
-			const mailOptions = {
-				from: process.env.EMAIL,
-				to: `${currentUser?.email}`,
-				subject: 'Link to reset password',
-				text:
-					'Password reset email\n\n' +
-					'Click here:\n\n' +
-					`http://localhost:3000/resetpassword/${temporaryToken}`
-			};
-			transporter.sendMail(mailOptions, (err, response) => {
-				if (err) {
-					console.log('there was an error ', err.message);
-					return res.status(StatusCode.BAD_REQUEST).send({ message: err.message });
-				} else {
-					res.status(StatusCode.OK).json({
-						message: `Please check your mailbox`,
-						response
-					});
-				}
-			});
-		} catch (error) {
-			res.status(StatusCode.BAD_REQUEST).send({
-				message: `Email is not registered`,
-				error: error.message
-			});
-			console.log(error.message);
-		}
-	}
-};
-const handleResetPassword: IHandlerProps = async (req, res) => {
-	const resetPasswordToken = req.params.temporaryToken;
-	const user = await UserModel.findOne({
-		resetPasswordToken,
-		resetPasswordExpires: {
-			$gt: Date.now()
-		}
-	});
-
-	if (user === null) {
-		console.log('Password reset link is invalid or out of date');
-		res.status(StatusCode.BAD_REQUEST).send({
-			message: 'Password reset link is invalid or to old'
-		});
-		return;
-	} else {
-		if (!req.body.password) {
-			res.status(200).end();
-			return;
-		}
-		try {
-			const { salt, hash } = PasswordUtils.passwordGenerator(req.body.password);
-			await user.updateOne(
-				{
-					hash,
-					salt,
-					resetPasswordToken: null,
-					resetPasswordExpires: null
-				},
-				{ new: true }
-			);
-			res.send({ message: 'Log in with your new password' });
-		} catch (error) {
-			res.status(StatusCode.BAD_REQUEST).send({ message: error.message });
-		}
-	}
-};
-
-/**
- * @param req Id from sub(jwt sub)
- * @param res username and favoritewines-array
- */
-const showProfile = async (req: RequestType, res: Response) => {
-	try {
-		const profile = await UserModel.findOne({ _id: req.jwt.sub });
-		const favoriteWines = await WineModel.find({
-			_id: { $in: profile?.favoriteWines }
-		});
-		res.status(StatusCode.OK).send({ profile, favoriteWines });
-	} catch (error) {
-		console.log('Profile error: ', error.message);
-
-		res.status(StatusCode.UNAUTHORIZED).send({ error: error.message });
-	}
-};
-/**
- *User functions
- * @param {*Wine ID} req
- * @param {*Authenticateduser.favoriteWines} res
- */
-const addFavoriteWine = async (req: RequestType, res: Response) => {
-	try {
-		const favoriteWine = await WineModel.findByIdAndUpdate(
-			req.body.id,
-			{
-				$addToSet: {
-					likedBy: req.jwt.sub
-				}
-			},
-			{ new: true }
-		);
-		io.emit('wine-liked', favoriteWine);
-
-		await UserModel.findByIdAndUpdate(
-			req.jwt.sub,
-			{
-				$addToSet: {
-					favoriteWines: favoriteWine
-				}
-			},
-			{ new: true }
-		);
-		res.status(StatusCode.OK).send(favoriteWine);
-	} catch (error) {
-		if (error.message.includes('null')) {
-			res.status(StatusCode.NOTFOUND).send({
-				message: `Sorry from the sober API but you maybe took to many glasses of
-				 ${req.params.wineId} is not a valid Id`
-			});
-		} else if (error.message.includes('Cast')) {
-			res.status(StatusCode.BAD_REQUEST).send({
-				message: 'Sorry but you need a ID to add a wine to your list'
-			});
-		} else if (!req.params) {
-			res.status(StatusCode.METHOD_NOT_ALLOWED).send({
-				message: `Sorry but thats not a valid ID:  ${req.params} `
-			});
-		} else {
-			res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-				message: error.message
-			});
-		}
-	}
-};
-/**
- * @param {*Wine ID} req
- * @param {*Authenticateduser.favoriteWines} res
- */
-const deleteWineFromUsersList = async (req: RequestType | any, res: Response) => {
-	const userId = req?.jwt?.sub;
-	const wId = req.params.wineId;
-
-	try {
-		console.log('uid:', req.jwt.sub);
-		console.log('wid:', req.params.wineId);
-
-		const response = await WineModel.findByIdAndUpdate(
-			wId,
-			{
-				$pull: {
-					likedBy: userId
-				}
-			},
-			{ new: true }
-		);
-
-		const respo = await UserModel.findByIdAndUpdate(
-			userId,
-			{
-				$pull: {
-					favoriteWines: {
-						_id: wId
-					}
-				}
-			},
-			{ new: true }
-		);
-		console.log(respo);
-		io.emit('wine-unliked', response);
-		res.send(response);
-	} catch (error) {
+		res.status(StatusCode.NOTFOUND).send(error.name);
 		console.log(error);
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error.message });
 	}
 };
-/*
- *
- * Admin functions
- *
- */
-const getAllUSers: IHandlerProps = async (req, res) => {
+export const getUserById: HandlerProps = async (req, res) => {
+	const { user_id } = req.body;
+	if (!user_id) {
+		res.status(StatusCode.BAD_REQUEST).send('Missing request details');
+	}
+	const query = {
+		text: 'SELECT * FROM public."Users" WHERE "user_id" = $1',
+		values: [user_id]
+	};
+	console.log(query);
+
 	try {
-		const response = await UserModel.find();
-		res.status(StatusCode.OK).send(response);
+		const { rows } = await pool.query(query);
+
+		res.status(StatusCode.OK).json(rows[0]);
 	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			message: error.message
-		});
+		res.status(StatusCode.NOTFOUND).send('Could not find ');
 	}
 };
 
-const getUserById: IHandlerProps = async (req, res) => {
+export const createUser: HandlerProps = async (req, res) => {
+	const { brp_id, org_id } = req.body;
+	const query = {
+		text: 'INSERT INTO public."Users" (brp_id ,org_id ) VALUES ($1, $2) RETURNING *',
+		values: [brp_id, org_id]
+	};
 	try {
-		const response = await UserModel.findById(req.params.userId);
-		res.status(StatusCode.OK).send(response);
-		return response;
+		const { rows } = await pool.query(query);
+		res.status(StatusCode.CREATED).json(rows[0]);
 	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			error: error.message,
-			message: 'Error occured while trying to retrieve user with ID:' + req.params.userId
-		});
+		res.status(StatusCode.BAD_REQUEST).send('Somethin went wrong');
+		console.log(error);
 	}
 };
 
-const getUserByUserNameQuery: IHandlerProps = async (req, res) => {
+export const deleteUser: HandlerProps = async (req, res) => {
+	const { user_id } = req.body;
+	const query = {
+		text: 'DELETE FROM public."Users" WHERE "user_id" = $1',
+		values: [user_id]
+	};
 	try {
-		const response = await UserModel.find({
-			username: req.params.username
-		});
-		response.length !== 0
-			? res.status(StatusCode.OK).send(response)
-			: res.status(StatusCode.NOTFOUND).send({
-					message: 'Couldnt find user ' + req.params.username
-			  });
+		await pool.query(query);
+		res.status(StatusCode.OK).send(`User deleted with "user_id": ${user_id}`);
 	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			error: error.message,
-			message:
-				'Error occured while trying to retrieve user with username:' + req.params.userName
-		});
+		res.sendStatus(StatusCode.FORBIDDEN).send('Impossible');
+		console.log(error);
 	}
 };
 
-const deleteUserById: IHandlerProps = async (req, res) => {
-	try {
-		const response = await UserModel.findByIdAndDelete(req.params.userId);
-		res.status(StatusCode.OK).send({
-			message: `Successfully deleted: and ID ${response?._id}`
-		});
-	} catch (error) {
-		res.status(StatusCode.INTERNAL_SERVER_ERROR).send({
-			message:
-				'Error occured while trying to find and delete user with ID:' + req.params.userId
-		});
-	}
+export const updateUser: HandlerProps = async (req, res) => {
+	const { user_id, active } = req.body;
+
+	const query = {
+		text: 'UPDATE public."Users" SET "active"=$2 WHERE "user_id" = $1  RETURNING * ',
+		values: [user_id, active]
+	};
+	const { rows } = await pool.query(query);
+	res.status(StatusCode.OK).json(rows[0]);
 };
 
-/****************************************************/
+// user_id uuid NOT NULL DEFAULT uuid_generate_v4(),
+/**CREATE TABLE "Cards" (
+    "card_id" uuid Primary Key NOT NULL DEFAULT uuid_generate_v4(),
+"name" Varchar(50) ,
+    "description" text ,
+    "price" Numeric, 
+    "original_price" Numeric,
+    "url" text,
+    "org_id" uuid [] ,
+ FOREIGN KEY (EACH ELEMENT OF "org_id") REFERENCES public."Organizations"
 
-export default {
-	showProfile,
-	handleRegister,
-	handleLogin,
-	logout,
-	handleForgottPassword,
-	handleResetPassword,
-	getAllUSers,
-	getUserById,
-	getUserByUserNameQuery,
-	deleteUserById,
-	addFavoriteWine,
-	deleteWineFromUsersList
-};
-
-//		"deploy": "git add . && git commit -m Heroku && git push",
+) */

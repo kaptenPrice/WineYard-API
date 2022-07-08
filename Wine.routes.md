@@ -1,6 +1,6 @@
 import WineCtrl from '../controller/Wine.controller';
-import passwordUtils from '../lib/PasswordUtils';
-import { upload } from '../middleware/MiddleWares';
+import passwordUtils from './src/lib/PasswordUtils';
+import { upload } from './src/middleware/MiddleWares';
 
 const wineRoutes = (app: any) => {
 	/** POST requires input from body : name, country, description, grapes, year */

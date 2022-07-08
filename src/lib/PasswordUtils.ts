@@ -2,7 +2,7 @@ import crypto, { BinaryLike } from 'crypto';
 import jsonWebToken, { Secret } from 'jsonwebtoken';
 import StatusCode from '../../config/StatusCode';
 import dotenv from 'dotenv';
-import { IUser } from '../model/User.model';
+// import { IUser } from '../model/User.model';
 import { Response, NextFunction, Request } from 'express';
 dotenv.config();
 
@@ -37,11 +37,13 @@ const passwordValidator = (password: BinaryLike, hash: BinaryLike, salt: BinaryL
 
  * @param {*user - the user object }
  * @returns the jwt-token including the users ID as sub in token
+ * TODO Declare IUser
  */
-const generateJwt = async (user: IUser, res: Response) => {
+const generateJwt = async (user: any, res: Response) => {
 	const _id = user._id;
 	// const expiresIn = '1d';
 	const expiration = process.env.ENVIROMENT === 'DEVELOPMENT' ? 3600000 : 604800000;
+
 	const payload = {
 		sub: _id,
 		iat: Math.floor(Date.now() / 1000)
