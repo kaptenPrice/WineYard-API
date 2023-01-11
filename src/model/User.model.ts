@@ -40,7 +40,6 @@ const UserSchema = new Schema(
 	}
 );
 UserSchema.plugin(uniqueValidator, { message: 'Error, expected {PATH} to be unique.' });
-
 const UserModel = model<IUser>('user', UserSchema);
 
 export default UserModel;
